@@ -92,6 +92,9 @@ function M.rename()
 end
 
 function M.delete()
+  if vim.fn.line "." == 1 then
+    return
+  end
   local name = vim.api.nvim_get_current_line()
   local path = full_path(name)
 
