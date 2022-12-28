@@ -33,9 +33,9 @@ function M.create_file()
     end
 
     local fd, err = vim.loop.fs_open(path, "w", 420)
-    if err then
+    if not fd then
       vim.cmd "redraw"
-      vim.notify("Couldn't create file " .. path, vim.log.levels.ERROR)
+      vim.api.nvim_notify(err .. path, vim.log.levels.ERROR, {})
       return
     end
     vim.loop.fs_close(fd)
@@ -75,15 +75,15 @@ function M.rename()
 
     new_path = utils.remove_trailing_slash(new_path)
 
-    local ok, _ = vim.loop.fs_rename(path, new_path)
     if vim.loop.fs_stat(new_path) then
       msg_already_exists(new_path)
       return
     end
 
+    local ok, err = vim.loop.fs_rename(path, new_path)
     if not ok then
       vim.cmd "redraw"
-      vim.notify("Couldn't rename " .. path, vim.log.levels.ERROR)
+      vim.api.nvim_notify(err .. path, vim.log.levels.ERROR, {})
       return
     end
 
@@ -101,7 +101,7 @@ function M.delete()
 
   if vim.fn.delete(path, "rf") ~= 0 then
     vim.cmd "redraw"
-    vim.notify("Couldn't delete " .. path, vim.log.levels.ERROR)
+    vim.api.nvim_notify("Couldn't delete " .. path, vim.log.levels.ERROR, {})
   end
 
   redraw()

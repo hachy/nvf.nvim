@@ -28,8 +28,8 @@ function M.redraw(buf, cur_path)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { path })
 
   local fs, err = vim.loop.fs_scandir(path)
-  if err then
-    vim.api.nvim_err_writeln(err)
+  if not fs then
+    vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
     return
   end
   list = {}
