@@ -2,11 +2,13 @@ local buffer = require "nvf.buffer"
 local utils = require "nvf.utils"
 
 local M = {}
+local sep = utils.sep
+local clipboard
 
 local function full_path(input)
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
-  return vim.fs.normalize(cur_path .. utils.sep .. input)
+  return vim.fs.normalize(cur_path .. sep .. input)
 end
 
 local function msg_already_exists(path)
@@ -105,6 +107,77 @@ function M.delete()
   if vim.fn.delete(path, "rf") ~= 0 then
     vim.cmd "redraw"
     vim.api.nvim_notify("Couldn't delete " .. path, vim.log.levels.ERROR, {})
+  end
+
+  redraw()
+end
+
+function M.copy()
+  local name = vim.api.nvim_get_current_line()
+  local path = full_path(name)
+  clipboard = utils.remove_trailing_slash(path)
+  vim.api.nvim_notify("Copied " .. clipboard, vim.log.levels.INFO, {})
+end
+
+local function copy_recursively(from_path, to_path)
+  local from = utils.remove_trailing_slash(from_path)
+  local to = utils.remove_trailing_slash(to_path)
+  local stat = assert(vim.loop.fs_stat(from))
+
+  if vim.loop.fs_stat(to) then
+    msg_already_exists(to)
+    return
+  end
+
+  local fs, err = vim.loop.fs_scandir(from)
+  if not fs then
+    vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
+    return
+  end
+
+  local ok, err_mkdir = vim.loop.fs_mkdir(to, stat.mode)
+  if not ok then
+    vim.api.nvim_notify(err_mkdir .. to, vim.log.levels.ERROR, {})
+    return
+  end
+
+  local name, type = vim.loop.fs_scandir_next(fs)
+  while name ~= nil do
+    local old_path = vim.fs.normalize(from .. sep .. name)
+    local new_path = vim.fs.normalize(to .. sep .. name)
+    if type == "directory" then
+      copy_recursively(old_path, new_path)
+    else
+      local ok_cp, err_cp = vim.loop.fs_copyfile(old_path, new_path)
+      if not ok_cp then
+        vim.api.nvim_notify(err_cp, vim.log.levels.ERROR, {})
+        return
+      end
+    end
+    name, type = vim.loop.fs_scandir_next(fs)
+  end
+end
+
+function M.paste()
+  if clipboard == nil then
+    vim.api.nvim_notify("The clipboard is empty", vim.log.levels.INFO, {})
+    return
+  end
+  local path = full_path(vim.fs.basename(clipboard))
+
+  if vim.fn.isdirectory(clipboard) == 1 then
+    copy_recursively(clipboard, path)
+  else
+    if vim.loop.fs_stat(path) then
+      msg_already_exists(path)
+      return
+    end
+
+    local ok, err = vim.loop.fs_copyfile(clipboard, path)
+    if not ok then
+      vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
+      return
+    end
   end
 
   redraw()

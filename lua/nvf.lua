@@ -17,6 +17,8 @@ M.config = {
     ["K"] = "require('nvf.file').create_directory()",
     ["R"] = "require('nvf.file').rename()",
     ["D"] = "require('nvf.file').delete()",
+    ["c"] = "require('nvf.file').copy()",
+    ["p"] = "require('nvf.file').paste()",
   },
 }
 
