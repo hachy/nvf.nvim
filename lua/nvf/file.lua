@@ -9,12 +9,9 @@ local function full_path(input)
   return vim.fs.normalize(cur_path .. utils.sep .. input)
 end
 
-local function check_existence(path)
-  if vim.loop.fs_stat(path) then
-    vim.cmd "redraw"
-    vim.notify(string.format("%s already exists", path), vim.log.levels.WARN)
-    return
-  end
+local function msg_already_exists(path)
+  vim.cmd "redraw"
+  vim.api.nvim_notify(string.format("%s already exists", path), vim.log.levels.WARN, {})
 end
 
 local function redraw()
@@ -27,8 +24,13 @@ function M.create_file()
     if not input then
       return
     end
+
     local path = full_path(input)
-    check_existence(path)
+
+    if vim.loop.fs_stat(path) then
+      msg_already_exists(path)
+      return
+    end
 
     local fd, err = vim.loop.fs_open(path, "w", 420)
     if err then
@@ -47,8 +49,14 @@ function M.create_directory()
     if not input then
       return
     end
+
     local path = full_path(input)
-    check_existence(path)
+
+    if vim.loop.fs_stat(path) then
+      msg_already_exists(path)
+      return
+    end
+
     vim.fn.mkdir(path, "p")
     redraw()
   end)
@@ -64,10 +72,15 @@ function M.rename()
     if not new_path then
       return
     end
+
     new_path = utils.remove_trailing_slash(new_path)
-    check_existence(new_path)
 
     local ok, _ = vim.loop.fs_rename(path, new_path)
+    if vim.loop.fs_stat(new_path) then
+      msg_already_exists(new_path)
+      return
+    end
+
     if not ok then
       vim.cmd "redraw"
       vim.notify("Couldn't rename " .. path, vim.log.levels.ERROR)
