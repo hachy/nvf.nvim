@@ -21,6 +21,17 @@ function M.create_buf(buf)
   vim.cmd "setlocal nonumber"
 end
 
+local function sort(a, b)
+  local t1 = a.type == "directory"
+  local t2 = b.type == "directory"
+  if t1 and not t2 then
+    return true
+  elseif not t1 and t2 then
+    return false
+  end
+  return a.name:lower() < b.name:lower()
+end
+
 function M.redraw(buf, cur_path)
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
 
@@ -32,16 +43,28 @@ function M.redraw(buf, cur_path)
     vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
     return
   end
-  list = {}
+
+  -- reset list
+  for i, _ in ipairs(list) do
+    list[i] = nil
+  end
+
   local name, type = vim.loop.fs_scandir_next(fs)
   while name ~= nil do
     if type == "directory" then
       name = name .. sep
     end
-    table.insert(list, name)
+    table.insert(list, { name = name, type = type })
     name, type = vim.loop.fs_scandir_next(fs)
   end
-  vim.api.nvim_buf_set_lines(buf, 1, -1, false, list)
+
+  table.sort(list, sort)
+
+  local names = vim.tbl_map(function(t)
+    return t.name
+  end, list)
+
+  vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
 
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
@@ -62,7 +85,7 @@ function M.cd()
   local parent_name = vim.fn.fnamemodify(cur_path, ":t") .. sep
   local parent_cursor_line
   for i, v in ipairs(list) do
-    if v == parent_name then
+    if v.name == parent_name then
       parent_cursor_line = i + 1
     end
   end
