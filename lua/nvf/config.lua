@@ -6,6 +6,7 @@ M.default = {
     ["q"] = "require('nvf.view').quit()",
     ["l"] = "require('nvf.view').open()",
     ["h"] = "require('nvf.view').cd()",
+    ["."] = "require('nvf.view').toggle_hidden_files()",
     ["N"] = "require('nvf.file').create_file()",
     ["K"] = "require('nvf.file').create_directory()",
     ["R"] = "require('nvf.file').rename()",

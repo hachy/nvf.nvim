@@ -1,3 +1,4 @@
+local config = require "nvf.config"
 local buffer = require "nvf.buffer"
 local window = require "nvf.window"
 local cursor = require "nvf.cursor"
@@ -54,7 +55,13 @@ function M.redraw(buf, cur_path)
     if type == "directory" then
       name = name .. sep
     end
-    table.insert(list, { name = name, type = type })
+    if not config.default.show_hidden_files then
+      if not vim.startswith(name, ".") then
+        table.insert(list, { name = name, type = type })
+      end
+    else
+      table.insert(list, { name = name, type = type })
+    end
     name, type = vim.loop.fs_scandir_next(fs)
   end
 
@@ -123,6 +130,19 @@ end
 function M.quit()
   local win = vim.api.nvim_get_current_win()
   vim.cmd("buffer " .. window.get_prev_buf(win))
+end
+
+function M.toggle_hidden_files()
+  config.default.show_hidden_files = not config.default.show_hidden_files
+  local name = vim.api.nvim_get_current_line()
+
+  local buf = vim.api.nvim_get_current_buf()
+  local cur_path = buffer.get_cwd(buf)
+  M.redraw(buf, cur_path)
+
+  local cursor_line = find_cursor_line_from(list, name)
+  cursor.new(buf, cur_path, { cursor_line, 0 })
+  cursor.set(buf, nil, { cursor_line, 0 })
 end
 
 return M
