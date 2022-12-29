@@ -69,6 +69,17 @@ function M.redraw(buf, cur_path)
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
 
+local function find_cursor_line_from(file_list, name)
+  local cursor_line
+  for i, v in ipairs(file_list) do
+    if v.name == name then
+      cursor_line = i + 1
+      break
+    end
+  end
+  return cursor_line
+end
+
 function M.cd()
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
@@ -83,12 +94,7 @@ function M.cd()
   M.redraw(buf, parent_path)
 
   local parent_name = vim.fn.fnamemodify(cur_path, ":t") .. sep
-  local parent_cursor_line
-  for i, v in ipairs(list) do
-    if v.name == parent_name then
-      parent_cursor_line = i + 1
-    end
-  end
+  local parent_cursor_line = find_cursor_line_from(list, parent_name)
   cursor.new(buf, cur_path, cursor_pos)
   cursor.set(buf, parent_path, { parent_cursor_line, 0 })
 end
