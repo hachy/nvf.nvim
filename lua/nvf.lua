@@ -1,3 +1,4 @@
+local config = require "nvf.config"
 local buffer = require "nvf.buffer"
 local window = require "nvf.window"
 local cursor = require "nvf.cursor"
@@ -6,21 +7,6 @@ local view = require "nvf.view"
 local M = {}
 
 local buf
-
-M.config = {
-  show_hidden_files = false,
-  mappings = {
-    ["q"] = "require('nvf.view').quit()",
-    ["l"] = "require('nvf.view').open()",
-    ["h"] = "require('nvf.view').cd()",
-    ["N"] = "require('nvf.file').create_file()",
-    ["K"] = "require('nvf.file').create_directory()",
-    ["R"] = "require('nvf.file').rename()",
-    ["D"] = "require('nvf.file').delete()",
-    ["c"] = "require('nvf.file').copy()",
-    ["p"] = "require('nvf.file').paste()",
-  },
-}
 
 local function set_mappings(mappings)
   for k, v in pairs(mappings) do
@@ -64,11 +50,11 @@ function M.init()
 
   cursor.set(buf, cwd, cursor_pos or { 2, 0 })
 
-  set_mappings(M.config.mappings)
+  set_mappings(config.default.mappings)
 end
 
 function M.setup(args)
-  M.config = vim.tbl_deep_extend("force", M.config, args or {})
+  config.default = vim.tbl_deep_extend("force", config.default, args or {})
 end
 
 return M
