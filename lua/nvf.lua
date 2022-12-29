@@ -36,7 +36,7 @@ function M.init()
     else
       cwd = buffer.get_cwd(buf)
     end
-    cursor_pos = cursor.get(buf, cwd)
+    cursor_pos = cursor.get(buf, cwd) or vim.api.nvim_win_get_cursor(0)
   else
     buf = vim.api.nvim_create_buf(false, true)
     cwd = vim.fn.getcwd(0)

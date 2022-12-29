@@ -96,7 +96,7 @@ function M.cd()
   local parent_name = vim.fn.fnamemodify(cur_path, ":t") .. sep
   local parent_cursor_line = find_cursor_line_from(list, parent_name)
   cursor.new(buf, cur_path, cursor_pos)
-  cursor.set(buf, parent_path, { parent_cursor_line, 0 })
+  cursor.set(buf, nil, { parent_cursor_line, 0 })
 end
 
 function M.open()
