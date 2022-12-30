@@ -10,4 +10,12 @@ function Window.get_prev_buf(win)
   return list[win].prev_buf
 end
 
+function Window.find_buf_in(win)
+  if list[win] == nil then
+    return nil
+  else
+    return list[win].buf
+  end
+end
+
 return Window

@@ -9,8 +9,7 @@ local M = {}
 local sep = utils.sep
 local list = {}
 
-function M.create_buf(buf)
-  vim.api.nvim_buf_set_name(buf, "Nvf")
+local function new_buffer(buf)
   vim.api.nvim_buf_set_option(buf, "filetype", "nvf")
   vim.api.nvim_buf_set_option(buf, "bufhidden", "hide")
   vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
@@ -20,6 +19,16 @@ function M.create_buf(buf)
   vim.cmd "setlocal nowrap"
   vim.cmd "setlocal cursorline"
   vim.cmd "setlocal nonumber"
+end
+
+function M.create_default_buf(buf)
+  vim.api.nvim_buf_set_name(buf, "[nvf]-default")
+  new_buffer(buf)
+end
+
+function M.create_new_buf(buf)
+  vim.api.nvim_buf_set_name(buf, "[nvf]-" .. buf)
+  new_buffer(buf)
 end
 
 local function sort(a, b)
