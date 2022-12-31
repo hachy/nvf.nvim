@@ -37,6 +37,16 @@ local function set_view(buf, win, cwd, cursor_pos, prev_buf)
   cursor.set(buf, cwd, cursor_pos or { 2, 0 })
 
   set_mappings(config.default.mappings)
+
+  vim.api.nvim_create_augroup("Nvf", { clear = true })
+  vim.api.nvim_create_autocmd("WinNew", {
+    group = "Nvf",
+    buffer = buf,
+    callback = function()
+      local new_win = vim.api.nvim_get_current_win()
+      window.new(new_win, buf, prev_buf)
+    end,
+  })
 end
 
 function M.init()
@@ -61,7 +71,6 @@ function M.init()
   end
 
   set_view(buf_common, win, cwd, cursor_pos, prev_buf)
-
 end
 
 function M.new_buf_in_win()
