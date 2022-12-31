@@ -83,6 +83,7 @@ end
 
 function M.setup(args)
   config.default = vim.tbl_deep_extend("force", config.default, args or {})
+  require("nvf.highlight").setup()
 end
 
 return M

@@ -3,6 +3,7 @@ local buffer = require "nvf.buffer"
 local window = require "nvf.window"
 local cursor = require "nvf.cursor"
 local utils = require "nvf.utils"
+local highlight = require "nvf.highlight"
 
 local M = {}
 
@@ -81,6 +82,8 @@ function M.redraw(buf, cur_path)
   end, list)
 
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
+
+  highlight.render(names)
 
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
