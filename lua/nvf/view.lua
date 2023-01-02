@@ -17,9 +17,9 @@ local function new_buffer(buf)
   vim.api.nvim_buf_set_option(buf, "swapfile", false)
 
   vim.cmd("buffer " .. buf)
-  vim.cmd "setlocal nowrap"
-  vim.cmd "setlocal cursorline"
-  vim.cmd "setlocal nonumber"
+  vim.opt_local.wrap = false
+  vim.opt_local.cursorline = true
+  vim.opt_local.number = false
 end
 
 function M.create_default_buf(buf)
