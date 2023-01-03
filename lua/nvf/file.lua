@@ -126,7 +126,14 @@ local function copy_recursively(from_path, to_path)
 
   if vim.loop.fs_stat(to) then
     msg_already_exists(to)
-    return
+    if vim.fn.confirm("Rename?", "&Yes\n&Cancel") == 1 then
+      vim.ui.input({ prompt = "Rename to: ", default = from, completion = "file" }, function(renamed_path)
+        copy_recursively(from, renamed_path)
+      end)
+      return
+    else
+      return
+    end
   end
 
   local fs, err = vim.loop.fs_scandir(from)
@@ -158,6 +165,26 @@ local function copy_recursively(from_path, to_path)
   end
 end
 
+local function paste_file(path)
+  if vim.loop.fs_stat(path) then
+    msg_already_exists(path)
+    if vim.fn.confirm("Rename?", "&Yes\n&Cancel") == 1 then
+      vim.ui.input({ prompt = "Rename to: ", default = path, completion = "file" }, function(renamed_path)
+        paste_file(renamed_path)
+      end)
+      return
+    else
+      return
+    end
+  end
+
+  local ok, err = vim.loop.fs_copyfile(clipboard, path)
+  if not ok then
+    vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
+    return
+  end
+end
+
 function M.paste()
   if clipboard == nil then
     vim.api.nvim_notify("The clipboard is empty", vim.log.levels.INFO, {})
@@ -168,16 +195,7 @@ function M.paste()
   if vim.fn.isdirectory(clipboard) == 1 then
     copy_recursively(clipboard, path)
   else
-    if vim.loop.fs_stat(path) then
-      msg_already_exists(path)
-      return
-    end
-
-    local ok, err = vim.loop.fs_copyfile(clipboard, path)
-    if not ok then
-      vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
-      return
-    end
+    paste_file(path)
   end
 
   redraw()
