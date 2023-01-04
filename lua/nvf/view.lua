@@ -62,15 +62,23 @@ function M.redraw(buf, cur_path)
 
   local name, type = vim.loop.fs_scandir_next(fs)
   while name ~= nil do
+    local link = nil
     if type == "directory" then
       name = name .. sep
+    elseif type == "link" then
+      local fs_stat = vim.loop.fs_stat(path .. name)
+      if fs_stat.type == "directory" then
+        name = name .. sep
+      end
+      type = fs_stat.type
+      link = type
     end
     if not config.default.show_hidden_files then
       if not vim.startswith(name, ".") then
-        table.insert(list, { name = name, type = type })
+        table.insert(list, { name = name, type = type, link = link })
       end
     else
-      table.insert(list, { name = name, type = type })
+      table.insert(list, { name = name, type = type, link = link })
     end
     name, type = vim.loop.fs_scandir_next(fs)
   end
@@ -83,7 +91,7 @@ function M.redraw(buf, cur_path)
 
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
 
-  highlight.render(names)
+  highlight.render(list)
 
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
