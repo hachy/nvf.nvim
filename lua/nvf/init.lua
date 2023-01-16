@@ -72,7 +72,7 @@ function M.init()
   set_view(buf_common, win, cwd, cursor_pos, prev_buf)
 end
 
-function M.new_buf_in_win()
+function M.brand_new_buffer()
   local win = vim.api.nvim_get_current_win()
   local buf_existed = window.find_buf_in(win)
   if buf_existed then

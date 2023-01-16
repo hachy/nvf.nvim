@@ -13,6 +13,7 @@ M.default = {
     ["D"] = "require('nvf.file').delete()",
     ["c"] = "require('nvf.file').copy()",
     ["p"] = "require('nvf.file').paste()",
+    ["<Tab>"] = "require('nvf').brand_new_buffer()",
   },
 }
 
