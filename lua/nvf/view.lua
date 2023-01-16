@@ -107,7 +107,7 @@ local function find_cursor_line_from(file_list, name)
   return cursor_line
 end
 
-function M.cd()
+function M.up()
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
   local parent_path = vim.fn.fnamemodify(cur_path, ":h")
