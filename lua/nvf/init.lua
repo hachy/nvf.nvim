@@ -6,7 +6,7 @@ local view = require "nvf.view"
 
 local M = {}
 
-local default_buf
+local default_buf, nvf_group
 
 local function set_mappings(mappings)
   for k, v in pairs(mappings) do
@@ -38,9 +38,8 @@ local function set_view(buf, win, cwd, cursor_pos, prev_buf)
 
   set_mappings(config.default.mappings)
 
-  vim.api.nvim_create_augroup("Nvf", { clear = true })
   vim.api.nvim_create_autocmd("WinNew", {
-    group = "Nvf",
+    group = nvf_group,
     buffer = buf,
     callback = function()
       local new_win = vim.api.nvim_get_current_win()
@@ -93,6 +92,21 @@ end
 function M.setup(args)
   config.default = vim.tbl_deep_extend("force", config.default, args or {})
   require("nvf.highlight").setup()
+
+  nvf_group = vim.api.nvim_create_augroup("Nvf", { clear = true })
+  vim.api.nvim_create_autocmd("WinClosed", {
+    group = nvf_group,
+    callback = function(ev)
+      local win = tonumber(ev.match)
+      local winbuf = window.find_buf_in(win)
+      if win and winbuf and (winbuf ~= default_buf) then
+        window.clear(win)
+        buffer.clear(winbuf)
+        cursor.clear(winbuf)
+        vim.cmd.bwipeout(winbuf)
+      end
+    end,
+  })
 end
 
 return M

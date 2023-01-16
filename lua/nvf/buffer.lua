@@ -14,4 +14,8 @@ function Buffer.get_cwd(buf)
   return list[buf].cwd
 end
 
+function Buffer.clear(buf)
+  list[buf] = nil
+end
+
 return Buffer

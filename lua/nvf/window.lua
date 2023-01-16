@@ -18,4 +18,8 @@ function Window.find_buf_in(win)
   end
 end
 
+function Window.clear(win)
+  list[win] = nil
+end
+
 return Window

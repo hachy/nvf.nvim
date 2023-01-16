@@ -41,4 +41,12 @@ function Cursor.set(buf, dir, default_pos)
   end
 end
 
+function Cursor.clear(buf)
+  for i, v in ipairs(list) do
+    if v.buf == buf then
+      list[i] = nil
+    end
+  end
+end
+
 return Cursor
