@@ -1,4 +1,5 @@
 local buffer = require "nvf.buffer"
+local view = require "nvf.view"
 local utils = require "nvf.utils"
 
 local M = {}
@@ -18,7 +19,7 @@ end
 
 local function redraw()
   local buf = vim.api.nvim_get_current_buf()
-  require("nvf.view").redraw(buf, buffer.get_cwd(buf))
+  view.redraw(buf, buffer.get_cwd(buf))
 end
 
 function M.create_file()
@@ -68,7 +69,7 @@ function M.rename()
   if vim.fn.line "." == 1 then
     return
   end
-  local name = vim.api.nvim_get_current_line()
+  local name = view.get_fname(vim.fn.line ".")
   local path = utils.remove_trailing_slash(full_path(name))
   vim.ui.input({ prompt = "Rename to: ", default = path, completion = "file" }, function(new_path)
     if not new_path then
@@ -97,7 +98,7 @@ function M.delete()
   if vim.fn.line "." == 1 then
     return
   end
-  local name = vim.api.nvim_get_current_line()
+  local name = view.get_fname(vim.fn.line ".")
   local path = full_path(name)
 
   if vim.fn.confirm("Delete?: " .. path, "&Yes\n&No", 1) ~= 1 then
@@ -120,7 +121,7 @@ function M.delete()
 end
 
 function M.copy()
-  local name = vim.api.nvim_get_current_line()
+  local name = view.get_fname(vim.fn.line ".")
   local path = full_path(name)
   clipboard = utils.remove_trailing_slash(path)
   vim.api.nvim_notify("Copied " .. clipboard, vim.log.levels.INFO, {})

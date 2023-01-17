@@ -10,6 +10,10 @@ local M = {}
 local sep = utils.sep
 local list = {}
 
+function M.get_fname(line)
+  return list[line - 1].name
+end
+
 local function new_buffer(buf)
   vim.api.nvim_buf_set_option(buf, "filetype", "nvf")
   vim.api.nvim_buf_set_option(buf, "bufhidden", "hide")
@@ -43,6 +47,18 @@ local function sort(a, b)
   return a.name:lower() < b.name:lower()
 end
 
+local function winwidth()
+  local width = vim.api.nvim_get_option "columns"
+  if width >= 99 then
+    width = 80
+  elseif width <= 40 then
+    width = 40
+  else
+    width = width - 10
+  end
+  return width
+end
+
 function M.redraw(buf, cur_path)
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
 
@@ -62,23 +78,24 @@ function M.redraw(buf, cur_path)
 
   local name, type = vim.loop.fs_scandir_next(fs)
   while name ~= nil do
+    local fs_stat = vim.loop.fs_stat(path .. name)
     local link = nil
     if type == "directory" then
       name = name .. sep
     elseif type == "link" then
-      local fs_stat = vim.loop.fs_stat(path .. name)
       if fs_stat.type == "directory" then
         name = name .. sep
       end
       type = fs_stat.type
       link = type
     end
+    local item = { name = name, type = type, link = link, mtime = fs_stat.mtime.sec }
     if not config.default.show_hidden_files then
       if not vim.startswith(name, ".") then
-        table.insert(list, { name = name, type = type, link = link })
+        table.insert(list, item)
       end
     else
-      table.insert(list, { name = name, type = type, link = link })
+      table.insert(list, item)
     end
     name, type = vim.loop.fs_scandir_next(fs)
   end
@@ -86,12 +103,14 @@ function M.redraw(buf, cur_path)
   table.sort(list, sort)
 
   local names = vim.tbl_map(function(t)
-    return t.name
+    local align = winwidth() - #t.name
+    local format = " %s %" .. align .. "s"
+    return string.format(format, t.name, os.date("%x %H:%M", t.mtime))
   end, list)
 
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
 
-  highlight.render(list)
+  highlight.render(list, winwidth() - 16)
 
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
@@ -147,12 +166,13 @@ function M.home()
 end
 
 function M.open()
-  if vim.fn.line "." == 1 then
+  local line = vim.fn.line "."
+  if line == 1 then
     return
   end
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
-  local name = vim.api.nvim_get_current_line()
+  local name = M.get_fname(line)
   local next_path = utils.remove_trailing_slash(vim.fs.normalize(cur_path .. sep .. name))
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
@@ -160,6 +180,7 @@ function M.open()
     buffer.set_cwd(buf, next_path)
     M.redraw(buf, next_path)
   else
+    vim.cmd "redraw"
     vim.cmd("edit " .. next_path)
   end
 
@@ -174,7 +195,7 @@ end
 
 function M.toggle_hidden_files()
   config.default.show_hidden_files = not config.default.show_hidden_files
-  local name = vim.api.nvim_get_current_line()
+  local name = M.get_fname(vim.fn.line ".")
 
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
