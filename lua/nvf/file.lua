@@ -109,6 +109,13 @@ function M.delete()
     vim.api.nvim_notify("Couldn't delete " .. path, vim.log.levels.ERROR, {})
   end
 
+  local bl = vim.fn.getbufinfo { buflisted = 1 }
+  for _, v in pairs(bl) do
+    if v.name == path then
+      vim.cmd.bwipeout(v.bufnr)
+    end
+  end
+
   redraw()
 end
 

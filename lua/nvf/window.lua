@@ -7,6 +7,13 @@ function Window.new(win, buf, prev_buf)
 end
 
 function Window.get_prev_buf(win)
+  local ok, _ = pcall(list[win].prev_buf)
+  if not ok then
+    local bl = vim.fn.getbufinfo { buflisted = 1 }
+    for _, v in pairs(bl) do
+      return v.bufnr
+    end
+  end
   return list[win].prev_buf
 end
 
