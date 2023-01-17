@@ -195,7 +195,13 @@ end
 
 function M.toggle_hidden_files()
   config.default.show_hidden_files = not config.default.show_hidden_files
-  local name = M.get_fname(vim.fn.line ".")
+  local line = vim.fn.line "."
+  local name
+  if line == 1 then
+    name = vim.api.nvim_get_current_line()
+  else
+    name = M.get_fname(line)
+  end
 
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
