@@ -103,7 +103,7 @@ function M.redraw(buf, cur_path)
   table.sort(list, sort)
 
   local names = vim.tbl_map(function(t)
-    local align = winwidth() - #t.name
+    local align = winwidth() - vim.fn.strdisplaywidth(t.name)
     local format = " %s %" .. align .. "s"
     return string.format(format, t.name, os.date("%x %H:%M", t.mtime))
   end, list)
