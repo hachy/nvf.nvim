@@ -7,14 +7,14 @@ function Window.new(win, buf, prev_buf)
 end
 
 function Window.get_prev_buf(win)
-  local ok, _ = pcall(list[win].prev_buf)
-  if not ok then
+  local pb = list[win].prev_buf
+  if vim.fn.bufexists(pb) == 0 then
     local bl = vim.fn.getbufinfo { buflisted = 1 }
     for _, v in pairs(bl) do
       return v.bufnr
     end
   end
-  return list[win].prev_buf
+  return pb
 end
 
 function Window.find_buf_in(win)
