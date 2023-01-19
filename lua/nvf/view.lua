@@ -143,16 +143,16 @@ function M.up()
   cursor.set(buf, nil, { parent_cursor_line, 0 })
 end
 
-local function cd_to(next_path)
+local function cd_to(dest)
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
-  buffer.set_cwd(buf, next_path)
-  M.redraw(buf, next_path)
+  buffer.set_cwd(buf, dest)
+  M.redraw(buf, dest)
 
   cursor.new(buf, cur_path, cursor_pos)
-  cursor.set(buf, next_path, { 2, 0 })
+  cursor.set(buf, dest, { 2, 0 })
 end
 
 function M.cwd()
