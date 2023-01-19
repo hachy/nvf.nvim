@@ -78,18 +78,20 @@ function M.redraw(buf, cur_path)
 
   local name, type = vim.loop.fs_scandir_next(fs)
   while name ~= nil do
-    local fs_stat = vim.loop.fs_stat(path .. name)
+    local fs_lstat = vim.loop.fs_lstat(path .. name)
     local link = nil
     if type == "directory" then
       name = name .. sep
     elseif type == "link" then
-      if fs_stat.type == "directory" then
+      if vim.fn.isdirectory(path .. name) == 1 then
         name = name .. sep
+        type = "directory"
+      else
+        type = "file"
       end
-      type = fs_stat.type
       link = type
     end
-    local item = { name = name, type = type, link = link, mtime = fs_stat.mtime.sec }
+    local item = { name = name, type = type, link = link, mtime = fs_lstat.mtime.sec }
     if not config.default.show_hidden_files then
       if not vim.startswith(name, ".") then
         table.insert(list, item)
@@ -132,10 +134,6 @@ function M.up()
   local parent_path = vim.fn.fnamemodify(cur_path, ":h")
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
-  if parent_path == sep then
-    return
-  end
-
   buffer.set_cwd(buf, parent_path)
   M.redraw(buf, parent_path)
 
@@ -145,16 +143,16 @@ function M.up()
   cursor.set(buf, nil, { parent_cursor_line, 0 })
 end
 
-local function cd_to(next_path)
+local function cd_to(dest)
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
-  buffer.set_cwd(buf, next_path)
-  M.redraw(buf, next_path)
+  buffer.set_cwd(buf, dest)
+  M.redraw(buf, dest)
 
   cursor.new(buf, cur_path, cursor_pos)
-  cursor.set(buf, next_path, { 2, 0 })
+  cursor.set(buf, dest, { 2, 0 })
 end
 
 function M.cwd()
@@ -165,6 +163,23 @@ function M.home()
   cd_to(vim.loop.os_homedir())
 end
 
+local function is_root(pathname)
+  if sep == "\\" then
+    return string.match(pathname, "^[A-Z]:\\?$")
+  end
+  return pathname == "/"
+end
+
+local function get_next_path(cur_path, name)
+  local path
+  if is_root(cur_path) then
+    path = utils.remove_trailing_slash(vim.fs.normalize(cur_path .. name))
+  else
+    path = utils.remove_trailing_slash(vim.fs.normalize(cur_path .. sep .. name))
+  end
+  return path
+end
+
 function M.open()
   local line = vim.fn.line "."
   if line == 1 then
@@ -173,7 +188,7 @@ function M.open()
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
   local name = M.get_fname(line)
-  local next_path = utils.remove_trailing_slash(vim.fs.normalize(cur_path .. sep .. name))
+  local next_path = get_next_path(cur_path, name)
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
   if vim.fn.isdirectory(next_path) == 1 then
