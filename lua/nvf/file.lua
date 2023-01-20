@@ -135,7 +135,7 @@ local function copy_recursively(from_path, to_path)
   if vim.loop.fs_stat(to) then
     msg_already_exists(to)
     if vim.fn.confirm("Rename?", "&Yes\n&Cancel") == 1 then
-      vim.ui.input({ prompt = "Rename to: ", default = from, completion = "file" }, function(renamed_path)
+      vim.ui.input({ prompt = "Rename to: ", default = to, completion = "file" }, function(renamed_path)
         copy_recursively(from, renamed_path)
       end)
       return
