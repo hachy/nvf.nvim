@@ -5,6 +5,7 @@ local utils = require "nvf.utils"
 local M = {}
 local sep = utils.sep
 local clipboard
+local paste_path
 
 local function full_path(input)
   local buf = vim.api.nvim_get_current_buf()
@@ -17,9 +18,23 @@ local function msg_already_exists(path)
   vim.api.nvim_notify(string.format("%s already exists", path), vim.log.levels.WARN, {})
 end
 
-local function redraw()
+local function cursor_after_action(input)
+  if type(input) == "string" then
+    for i, v in ipairs(view.get_list()) do
+      if v.name == input then
+        return vim.api.nvim_win_set_cursor(0, { i + 1, 0 })
+      end
+    end
+    return vim.api.nvim_win_set_cursor(0, { 1, 0 })
+  else
+    vim.api.nvim_win_set_cursor(0, { input, 0 })
+  end
+end
+
+local function redraw(input)
   local buf = vim.api.nvim_get_current_buf()
   view.redraw(buf, buffer.get_cwd(buf))
+  cursor_after_action(input)
 end
 
 function M.create_file()
@@ -43,7 +58,7 @@ function M.create_file()
     end
     vim.loop.fs_close(fd)
 
-    redraw()
+    redraw(input)
   end)
 end
 
@@ -61,15 +76,16 @@ function M.create_directory()
     end
 
     vim.fn.mkdir(path, "p")
-    redraw()
+    redraw(input .. sep)
   end)
 end
 
 function M.rename()
-  if vim.fn.line "." == 1 then
+  local line = vim.fn.line "."
+  if line == 1 then
     return
   end
-  local name = view.get_fname(vim.fn.line ".")
+  local name = view.get_fname(line)
   local path = utils.remove_trailing_slash(full_path(name))
   vim.ui.input({ prompt = "Rename to: ", default = path, completion = "file" }, function(new_path)
     if not new_path then
@@ -90,15 +106,16 @@ function M.rename()
       return
     end
 
-    redraw()
+    redraw(line)
   end)
 end
 
 function M.delete()
-  if vim.fn.line "." == 1 then
+  local line = vim.fn.line "."
+  if line == 1 then
     return
   end
-  local name = view.get_fname(vim.fn.line ".")
+  local name = view.get_fname(line)
   local path = full_path(name)
 
   if vim.fn.confirm("Delete?: " .. path, "&Yes\n&No", 1) ~= 1 then
@@ -117,7 +134,7 @@ function M.delete()
     end
   end
 
-  redraw()
+  redraw(line - 1)
 end
 
 function M.copy()
@@ -136,6 +153,7 @@ local function copy_recursively(from_path, to_path)
     msg_already_exists(to)
     if vim.fn.confirm("Rename?", "&Yes\n&Cancel") == 1 then
       vim.ui.input({ prompt = "Rename to: ", default = to, completion = "file" }, function(renamed_path)
+        paste_path = renamed_path
         copy_recursively(from, renamed_path)
       end)
       return
@@ -178,6 +196,7 @@ local function paste_file(path)
     msg_already_exists(path)
     if vim.fn.confirm("Rename?", "&Yes\n&Cancel") == 1 then
       vim.ui.input({ prompt = "Rename to: ", default = path, completion = "file" }, function(renamed_path)
+        paste_path = renamed_path
         paste_file(renamed_path)
       end)
       return
@@ -193,12 +212,21 @@ local function paste_file(path)
   end
 end
 
+local function new_paste_name(path)
+  local name = vim.fn.fnamemodify(path, ":t")
+  if vim.fn.isdirectory(path) == 1 then
+    return name .. sep
+  end
+  return name
+end
+
 function M.paste()
   if clipboard == nil then
     vim.api.nvim_notify("The clipboard is empty", vim.log.levels.INFO, {})
     return
   end
   local path = full_path(vim.fs.basename(clipboard))
+  paste_path = path
 
   if vim.fn.isdirectory(clipboard) == 1 then
     copy_recursively(clipboard, path)
@@ -206,7 +234,8 @@ function M.paste()
     paste_file(path)
   end
 
-  redraw()
+  local name = new_paste_name(paste_path)
+  redraw(name)
 end
 
 return M

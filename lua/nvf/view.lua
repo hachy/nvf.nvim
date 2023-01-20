@@ -10,6 +10,10 @@ local M = {}
 local sep = utils.sep
 local list = {}
 
+function M.get_list()
+  return list
+end
+
 function M.get_fname(line)
   return list[line - 1].name
 end
