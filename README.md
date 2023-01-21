@@ -41,8 +41,8 @@ vim.keymap.set("n", "<Space>f", "<Cmd>Nvf<CR>")
 - `q` : Quit the buffer
 - `l` : Open a file or directory under the cursor
 - `h` : Move to the parent directory
-- '^' : Move to current working directory
-- '~' : Move to home directory
+- `^` : Move to current working directory
+- `~` : Move to home directory
 - `.` : Toggle visibility of hidden files
 - `N` : Add a file
 - `K` : Add a directory
