@@ -8,8 +8,27 @@ local M = {}
 
 local default_buf, nvf_group
 
+local cmd = {
+  quit = "require('nvf.view').quit()",
+  open = "require('nvf.view').open()",
+  up = "require('nvf.view').up()",
+  cwd = "require('nvf.view').cwd()",
+  home = "require('nvf.view').home()",
+  toggle_hidden_files = "require('nvf.view').toggle_hidden_files()",
+  create_file = "require('nvf.file').create_file()",
+  create_directory = "require('nvf.file').create_directory()",
+  rename = "require('nvf.file').rename()",
+  delete = "require('nvf.file').delete()",
+  copy = "require('nvf.file').copy()",
+  paste = "require('nvf.file').paste()",
+  brand_new_buffer = "require('nvf').brand_new_buffer()",
+}
+
 local function set_mappings(mappings)
   for k, v in pairs(mappings) do
+    if cmd[v] then
+      v = cmd[v]
+    end
     vim.api.nvim_buf_set_keymap(0, "n", k, "<cmd>lua " .. v .. "<cr>", {
       nowait = true,
       noremap = true,
