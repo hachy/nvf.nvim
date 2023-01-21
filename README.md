@@ -41,6 +41,8 @@ vim.keymap.set("n", "<Space>f", "<Cmd>Nvf<CR>")
 - `q` : Quit the buffer
 - `l` : Open a file or directory under the cursor
 - `h` : Move to the parent directory
+- '^' : Move to current working directory
+- '~' : Move to home directory
 - `.` : Toggle visibility of hidden files
 - `N` : Add a file
 - `K` : Add a directory
@@ -48,6 +50,7 @@ vim.keymap.set("n", "<Space>f", "<Cmd>Nvf<CR>")
 - `D` : Delete
 - `c` : Copy
 - `p` : Paste
+- `<Tab>` : Open a brand new buffer
 
 ## Custom configuration
 
@@ -55,16 +58,19 @@ vim.keymap.set("n", "<Space>f", "<Cmd>Nvf<CR>")
 require('nvf').setup({
   show_hidden_files = false,
   mappings = {
-    ["q"] = "require('nvf.view').quit()",
-    ["l"] = "require('nvf.view').open()",
-    ["h"] = "require('nvf.view').up()",
-    ["."] = "require('nvf.view').toggle_hidden_files()",
-    ["N"] = "require('nvf.file').create_file()",
-    ["K"] = "require('nvf.file').create_directory()",
-    ["R"] = "require('nvf.file').rename()",
-    ["D"] = "require('nvf.file').delete()",
-    ["c"] = "require('nvf.file').copy()",
-    ["p"] = "require('nvf.file').paste()",
+    ["q"] = "quit",
+    ["l"] = "open",
+    ["h"] = "up",
+    ["^"] = "cwd",
+    ["~"] = "home",
+    ["."] = "toggle_hidden_files",
+    ["N"] = "create_file",
+    ["K"] = "create_directory",
+    ["R"] = "rename",
+    ["D"] = "delete",
+    ["c"] = "copy",
+    ["p"] = "paste",
+    ["<Tab>"] = "brand_new_buffer",
   },
 })
 ```
