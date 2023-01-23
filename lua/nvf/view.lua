@@ -225,23 +225,6 @@ function M.home()
   cd_to(vim.loop.os_homedir())
 end
 
-local function is_root(pathname)
-  if sep == "\\" then
-    return string.match(pathname, "^[A-Z]:\\?$")
-  end
-  return pathname == "/"
-end
-
-local function get_next_path(cur_path, name)
-  local path
-  if is_root(cur_path) then
-    path = utils.remove_trailing_slash(vim.fs.normalize(cur_path .. name))
-  else
-    path = utils.remove_trailing_slash(vim.fs.normalize(cur_path .. sep .. name))
-  end
-  return path
-end
-
 function M.open()
   local line = vim.fn.line "."
   if line == 1 then
@@ -249,8 +232,7 @@ function M.open()
   end
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
-  local name = M.get_fname(line)
-  local next_path = get_next_path(cur_path, name)
+  local next_path = get_absolute_path(line)
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
   if vim.fn.isdirectory(next_path) == 1 then
