@@ -63,10 +63,54 @@ local function winwidth()
   return width
 end
 
+local function line_item(path, name, type)
+  local absolute_path = path .. name
+  local fs_lstat = vim.loop.fs_lstat(absolute_path)
+  local link = nil
+  local has_children = false
+  if type == "directory" then
+    name = name .. sep
+  elseif type == "link" then
+    if vim.fn.isdirectory(absolute_path) == 1 then
+      name = name .. sep
+      type = "directory"
+    else
+      type = "file"
+    end
+    link = type
+  end
+  return {
+    name = name,
+    type = type,
+    link = link,
+    mtime = fs_lstat.mtime.sec,
+    has_children = has_children,
+    absolute_path = absolute_path,
+  }
+end
+
+local function create_list(fs, path, buf)
+  local local_list = {}
+  local name, type = vim.loop.fs_scandir_next(fs)
+  while name ~= nil do
+    local item = line_item(path, name, type)
+    if not config.default.show_hidden_files then
+      if not vim.startswith(name, ".") then
+        table.insert(local_list, item)
+      end
+    else
+      table.insert(local_list, item)
+    end
+    name, type = vim.loop.fs_scandir_next(fs)
+  end
+
+  table.sort(local_list, sort)
+
+  return local_list
+end
+
 function M.redraw(buf, cur_path)
-
   local path = vim.fn.fnamemodify(cur_path, ":p")
-
   local fs, err = vim.loop.fs_scandir(path)
   if not fs then
     vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
@@ -78,33 +122,7 @@ function M.redraw(buf, cur_path)
     list[i] = nil
   end
 
-  local name, type = vim.loop.fs_scandir_next(fs)
-  while name ~= nil do
-    local fs_lstat = vim.loop.fs_lstat(path .. name)
-    local link = nil
-    if type == "directory" then
-      name = name .. sep
-    elseif type == "link" then
-      if vim.fn.isdirectory(path .. name) == 1 then
-        name = name .. sep
-        type = "directory"
-      else
-        type = "file"
-      end
-      link = type
-    end
-    local item = { name = name, type = type, link = link, mtime = fs_lstat.mtime.sec }
-    if not config.default.show_hidden_files then
-      if not vim.startswith(name, ".") then
-        table.insert(list, item)
-      end
-    else
-      table.insert(list, item)
-    end
-    name, type = vim.loop.fs_scandir_next(fs)
-  end
-
-  table.sort(list, sort)
+  list = utils.shallowcopy(create_list(fs, path, buf))
 
   local names = vim.tbl_map(function(t)
     local align = winwidth() - vim.fn.strdisplaywidth(t.name)
