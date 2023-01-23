@@ -113,6 +113,30 @@ local function create_list(fs, path, buf)
 
   table.sort(local_list, sort)
 
+  local list2 = {}
+  for i, v in ipairs(local_list) do
+    if v.has_children then
+      local path2 = vim.fn.fnamemodify(v.absolute_path, ":p")
+      local fs2, err2 = vim.loop.fs_scandir(path2)
+      if not fs2 then
+        vim.api.nvim_notify(err2, vim.log.levels.ERROR, {})
+        return
+      end
+      table.insert(list2, { i, create_list(fs2, path2, buf) })
+    end
+  end
+
+  local sub = 0
+  for _, v2 in ipairs(list2) do
+    local i, li = unpack(v2)
+    local cnt2 = 1
+    for _, v3 in ipairs(li) do
+      table.insert(local_list, i + cnt2 + sub, v3)
+      cnt2 = cnt2 + 1
+    end
+    sub = #li
+  end
+
   return local_list
 end
 
