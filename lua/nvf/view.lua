@@ -67,7 +67,7 @@ local function winwidth()
   return width
 end
 
-local function line_item(path, name, type, buf)
+local function line_item(path, name, type, depth, buf)
   local absolute_path = path .. name
   local fs_lstat = vim.loop.fs_lstat(absolute_path)
   local link = nil
@@ -93,14 +93,15 @@ local function line_item(path, name, type, buf)
     mtime = fs_lstat.mtime.sec,
     has_children = has_children,
     absolute_path = absolute_path,
+    depth = depth,
   }
 end
 
-local function create_list(fs, path, buf)
+local function create_list(fs, path, depth, buf)
   local local_list = {}
   local name, type = vim.loop.fs_scandir_next(fs)
   while name ~= nil do
-    local item = line_item(path, name, type, buf)
+    local item = line_item(path, name, type, depth, buf)
     if not config.default.show_hidden_files then
       if not vim.startswith(name, ".") then
         table.insert(local_list, item)
@@ -122,7 +123,7 @@ local function create_list(fs, path, buf)
         vim.api.nvim_notify(err2, vim.log.levels.ERROR, {})
         return
       end
-      table.insert(list2, { i, create_list(fs2, path2, buf) })
+      table.insert(list2, { i, create_list(fs2, path2, depth + 1, buf) })
     end
   end
 
@@ -153,11 +154,12 @@ function M.redraw(buf, cur_path)
     list[i] = nil
   end
 
-  list = utils.shallowcopy(create_list(fs, path, buf))
+  list = utils.shallowcopy(create_list(fs, path, 1, buf))
 
   local names = vim.tbl_map(function(t)
-    local align = winwidth() - vim.fn.strdisplaywidth(t.name)
-    local format = " %s %" .. align .. "s"
+    local space = vim.fn.strdisplaywidth(t.name) + t.depth
+    local align = winwidth() - space
+    local format = "%" .. space .. "s %" .. align .. "s"
     return string.format(format, t.name, os.date("%x %H:%M", t.mtime))
   end, list)
 

@@ -15,7 +15,7 @@ function M.render(fs_stat, mtime_start)
   vim.api.nvim_buf_add_highlight(0, ns, "NvfCWD", 0, 0, -1)
 
   for i, v in ipairs(fs_stat) do
-    local name_end = #v.name + 1
+    local name_end = #v.name + v.depth
     if v.type == "directory" then
       vim.api.nvim_buf_add_highlight(0, ns, "NvfDir", i, 0, name_end)
     else
