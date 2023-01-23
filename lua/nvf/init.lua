@@ -49,11 +49,9 @@ local function switch_buffer(buf, win, prev_buf)
 end
 
 local function set_view(buf, win, cwd, cursor_pos, prev_buf)
+  buffer.new(buf, cwd, buffer.get_expanded_folders(buf) or {})
   view.redraw(buf, cwd)
-
-  buffer.new(buf, cwd)
   window.new(win, buf, prev_buf)
-
   cursor.set(buf, cwd, cursor_pos or { 2, 0 })
 
   set_mappings(config.default.mappings)

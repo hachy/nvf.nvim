@@ -18,6 +18,10 @@ function M.get_fname(line)
   return list[line - 1].name
 end
 
+local function get_absolute_path(line)
+  return list[line - 1].absolute_path
+end
+
 local function new_buffer(buf)
   vim.api.nvim_buf_set_option(buf, "filetype", "nvf")
   vim.api.nvim_buf_set_option(buf, "bufhidden", "hide")
@@ -63,7 +67,7 @@ local function winwidth()
   return width
 end
 
-local function line_item(path, name, type)
+local function line_item(path, name, type, buf)
   local absolute_path = path .. name
   local fs_lstat = vim.loop.fs_lstat(absolute_path)
   local link = nil
@@ -79,6 +83,9 @@ local function line_item(path, name, type)
     end
     link = type
   end
+  if type == "directory" and buffer.exists_expanded_folders(buf, absolute_path) then
+    has_children = true
+  end
   return {
     name = name,
     type = type,
@@ -93,7 +100,7 @@ local function create_list(fs, path, buf)
   local local_list = {}
   local name, type = vim.loop.fs_scandir_next(fs)
   while name ~= nil do
-    local item = line_item(path, name, type)
+    local item = line_item(path, name, type, buf)
     if not config.default.show_hidden_files then
       if not vim.startswith(name, ".") then
         table.insert(local_list, item)
@@ -170,6 +177,7 @@ function M.expand_or_collapse()
   end
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
+  buffer.mark_expand_or_collapse(buf, get_absolute_path(line))
   M.redraw(buf, cur_path)
 end
 
