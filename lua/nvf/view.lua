@@ -145,6 +145,16 @@ function M.up()
   cursor.set(buf, nil, { parent_cursor_line, 0 })
 end
 
+function M.expand_or_collapse()
+  local line = vim.fn.line "."
+  if line == 1 then
+    return
+  end
+  local buf = vim.api.nvim_get_current_buf()
+  local cur_path = buffer.get_cwd(buf)
+  M.redraw(buf, cur_path)
+end
+
 local function cd_to(dest)
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)

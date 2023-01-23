@@ -12,6 +12,7 @@ local cmd = {
   quit = "require('nvf.view').quit()",
   open = "require('nvf.view').open()",
   up = "require('nvf.view').up()",
+  expand_or_collapse = "require('nvf.view').expand_or_collapse()",
   cwd = "require('nvf.view').cwd()",
   home = "require('nvf.view').home()",
   toggle_hidden_files = "require('nvf.view').toggle_hidden_files()",
