@@ -201,8 +201,10 @@ function M.expand_or_collapse()
   end
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
+  local cursor_pos = vim.api.nvim_win_get_cursor(0)
   buffer.mark_expand_or_collapse(buf, get_absolute_path(line))
   M.redraw(buf, cur_path)
+  vim.api.nvim_win_set_cursor(0, cursor_pos)
 end
 
 local function cd_to(dest)
