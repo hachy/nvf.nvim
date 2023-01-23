@@ -64,10 +64,8 @@ local function winwidth()
 end
 
 function M.redraw(buf, cur_path)
-  vim.api.nvim_buf_set_option(buf, "modifiable", true)
 
   local path = vim.fn.fnamemodify(cur_path, ":p")
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { path })
 
   local fs, err = vim.loop.fs_scandir(path)
   if not fs then
@@ -114,10 +112,10 @@ function M.redraw(buf, cur_path)
     return string.format(format, t.name, os.date("%x %H:%M", t.mtime))
   end, list)
 
+  vim.api.nvim_buf_set_option(buf, "modifiable", true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { path })
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
-
   highlight.render(list, winwidth() - 16)
-
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
 
