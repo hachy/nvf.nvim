@@ -6,6 +6,7 @@ M.default = {
     ["q"] = "quit",
     ["l"] = "open",
     ["h"] = "up",
+    ["t"] = "expand_or_collapse",
     ["^"] = "cwd",
     ["~"] = "home",
     ["."] = "toggle_hidden_files",

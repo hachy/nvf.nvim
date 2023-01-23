@@ -18,6 +18,10 @@ function M.get_fname(line)
   return list[line - 1].name
 end
 
+local function get_absolute_path(line)
+  return list[line - 1].absolute_path
+end
+
 local function new_buffer(buf)
   vim.api.nvim_buf_set_option(buf, "filetype", "nvf")
   vim.api.nvim_buf_set_option(buf, "bufhidden", "hide")
@@ -63,12 +67,82 @@ local function winwidth()
   return width
 end
 
+local function line_item(path, name, type, depth, buf)
+  local absolute_path = path .. name
+  local fs_lstat = vim.loop.fs_lstat(absolute_path)
+  local link = nil
+  local has_children = false
+  if type == "directory" then
+    name = name .. sep
+  elseif type == "link" then
+    if vim.fn.isdirectory(absolute_path) == 1 then
+      name = name .. sep
+      type = "directory"
+    else
+      type = "file"
+    end
+    link = type
+  end
+  if type == "directory" and buffer.exists_expanded_folders(buf, absolute_path) then
+    has_children = true
+  end
+  return {
+    name = name,
+    type = type,
+    link = link,
+    mtime = fs_lstat.mtime.sec,
+    has_children = has_children,
+    absolute_path = absolute_path,
+    depth = depth,
+  }
+end
+
+local function create_list(fs, path, depth, buf)
+  local local_list = {}
+  local name, type = vim.loop.fs_scandir_next(fs)
+  while name ~= nil do
+    local item = line_item(path, name, type, depth, buf)
+    if not config.default.show_hidden_files then
+      if not vim.startswith(name, ".") then
+        table.insert(local_list, item)
+      end
+    else
+      table.insert(local_list, item)
+    end
+    name, type = vim.loop.fs_scandir_next(fs)
+  end
+
+  table.sort(local_list, sort)
+
+  local list2 = {}
+  for i, v in ipairs(local_list) do
+    if v.has_children then
+      local path2 = vim.fn.fnamemodify(v.absolute_path, ":p")
+      local fs2, err2 = vim.loop.fs_scandir(path2)
+      if not fs2 then
+        vim.api.nvim_notify(err2, vim.log.levels.ERROR, {})
+        return
+      end
+      table.insert(list2, { i, create_list(fs2, path2, depth + 1, buf) })
+    end
+  end
+
+  local sub = 0
+  for _, v2 in ipairs(list2) do
+    local i, li = unpack(v2)
+    local cnt2 = 1
+    for _, v3 in ipairs(li) do
+      table.insert(local_list, i + cnt2 + sub, v3)
+      cnt2 = cnt2 + 1
+    end
+    sub = #li
+  end
+
+  return local_list
+end
+
 function M.redraw(buf, cur_path)
-  vim.api.nvim_buf_set_option(buf, "modifiable", true)
-
   local path = vim.fn.fnamemodify(cur_path, ":p")
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { path })
-
   local fs, err = vim.loop.fs_scandir(path)
   if not fs then
     vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
@@ -80,44 +154,19 @@ function M.redraw(buf, cur_path)
     list[i] = nil
   end
 
-  local name, type = vim.loop.fs_scandir_next(fs)
-  while name ~= nil do
-    local fs_lstat = vim.loop.fs_lstat(path .. name)
-    local link = nil
-    if type == "directory" then
-      name = name .. sep
-    elseif type == "link" then
-      if vim.fn.isdirectory(path .. name) == 1 then
-        name = name .. sep
-        type = "directory"
-      else
-        type = "file"
-      end
-      link = type
-    end
-    local item = { name = name, type = type, link = link, mtime = fs_lstat.mtime.sec }
-    if not config.default.show_hidden_files then
-      if not vim.startswith(name, ".") then
-        table.insert(list, item)
-      end
-    else
-      table.insert(list, item)
-    end
-    name, type = vim.loop.fs_scandir_next(fs)
-  end
-
-  table.sort(list, sort)
+  list = utils.shallowcopy(create_list(fs, path, 1, buf))
 
   local names = vim.tbl_map(function(t)
-    local align = winwidth() - vim.fn.strdisplaywidth(t.name)
-    local format = " %s %" .. align .. "s"
+    local space = vim.fn.strdisplaywidth(t.name) + t.depth
+    local align = winwidth() - space
+    local format = "%" .. space .. "s %" .. align .. "s"
     return string.format(format, t.name, os.date("%x %H:%M", t.mtime))
   end, list)
 
+  vim.api.nvim_buf_set_option(buf, "modifiable", true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { path })
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
-
   highlight.render(list, winwidth() - 16)
-
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
 
@@ -147,6 +196,19 @@ function M.up()
   cursor.set(buf, nil, { parent_cursor_line, 0 })
 end
 
+function M.expand_or_collapse()
+  local line = vim.fn.line "."
+  if line == 1 then
+    return
+  end
+  local buf = vim.api.nvim_get_current_buf()
+  local cur_path = buffer.get_cwd(buf)
+  local cursor_pos = vim.api.nvim_win_get_cursor(0)
+  buffer.mark_expand_or_collapse(buf, get_absolute_path(line))
+  M.redraw(buf, cur_path)
+  vim.api.nvim_win_set_cursor(0, cursor_pos)
+end
+
 local function cd_to(dest)
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
@@ -167,23 +229,6 @@ function M.home()
   cd_to(vim.loop.os_homedir())
 end
 
-local function is_root(pathname)
-  if sep == "\\" then
-    return string.match(pathname, "^[A-Z]:\\?$")
-  end
-  return pathname == "/"
-end
-
-local function get_next_path(cur_path, name)
-  local path
-  if is_root(cur_path) then
-    path = utils.remove_trailing_slash(vim.fs.normalize(cur_path .. name))
-  else
-    path = utils.remove_trailing_slash(vim.fs.normalize(cur_path .. sep .. name))
-  end
-  return path
-end
-
 function M.open()
   local line = vim.fn.line "."
   if line == 1 then
@@ -191,8 +236,7 @@ function M.open()
   end
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
-  local name = M.get_fname(line)
-  local next_path = get_next_path(cur_path, name)
+  local next_path = get_absolute_path(line)
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
   if vim.fn.isdirectory(next_path) == 1 then

@@ -12,6 +12,7 @@ local cmd = {
   quit = "require('nvf.view').quit()",
   open = "require('nvf.view').open()",
   up = "require('nvf.view').up()",
+  expand_or_collapse = "require('nvf.view').expand_or_collapse()",
   cwd = "require('nvf.view').cwd()",
   home = "require('nvf.view').home()",
   toggle_hidden_files = "require('nvf.view').toggle_hidden_files()",
@@ -48,11 +49,9 @@ local function switch_buffer(buf, win, prev_buf)
 end
 
 local function set_view(buf, win, cwd, cursor_pos, prev_buf)
+  buffer.new(buf, cwd, buffer.get_expanded_folders(buf) or {})
   view.redraw(buf, cwd)
-
-  buffer.new(buf, cwd)
   window.new(win, buf, prev_buf)
-
   cursor.set(buf, cwd, cursor_pos or { 2, 0 })
 
   set_mappings(config.default.mappings)
