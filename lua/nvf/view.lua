@@ -127,15 +127,13 @@ local function create_list(fs, path, depth, buf)
     end
   end
 
-  local sub = 0
+  local cnt = 1
   for _, v2 in ipairs(list2) do
     local i, li = unpack(v2)
-    local cnt2 = 1
     for _, v3 in ipairs(li) do
-      table.insert(local_list, i + cnt2 + sub, v3)
-      cnt2 = cnt2 + 1
+      table.insert(local_list, i + cnt, v3)
+      cnt = cnt + 1
     end
-    sub = #li
   end
 
   return local_list
