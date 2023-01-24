@@ -18,6 +18,11 @@ M.default = {
     ["p"] = "paste",
     ["<Tab>"] = "brand_new_buffer",
   },
+  icon = {
+    directory = "+ ",
+    file = "  ",
+    expanded = "- ",
+  },
 }
 
 return M
