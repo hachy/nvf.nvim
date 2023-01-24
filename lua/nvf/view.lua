@@ -123,7 +123,7 @@ local function create_list(fs, path, depth, buf)
         vim.api.nvim_notify(err2, vim.log.levels.ERROR, {})
         return
       end
-      table.insert(list2, { i, create_list(fs2, path2, depth + 1, buf) })
+      table.insert(list2, { i, create_list(fs2, path2, depth + config.default.indent, buf) })
     end
   end
 
@@ -152,14 +152,14 @@ function M.redraw(buf, cur_path)
     list[i] = nil
   end
 
-  list = utils.shallowcopy(create_list(fs, path, 1, buf))
+  list = utils.shallowcopy(create_list(fs, path, 0, buf))
 
   local icons = config.default.icon
   local names = vim.tbl_map(function(t)
     local icon = icons[t.expanded and "expanded" or t.type]
-    local icon_len = vim.fn.strdisplaywidth(icon) + t.depth
-    local align = winwidth() - icon_len - vim.fn.strdisplaywidth(t.name)
-    local format = "%" .. icon_len .. "s%s %" .. align .. "s"
+    local indent_and_icon = t.depth + vim.fn.strdisplaywidth(icon)
+    local align = winwidth() - indent_and_icon - vim.fn.strdisplaywidth(t.name)
+    local format = "%" .. indent_and_icon .. "s%s %" .. align .. "s"
     return string.format(format, icon, t.name, os.date("%x %H:%M", t.mtime))
   end, list)
 

@@ -18,10 +18,11 @@ M.default = {
     ["p"] = "paste",
     ["<Tab>"] = "brand_new_buffer",
   },
+  indent = 1,
   icon = {
-    directory = "+ ",
-    file = "  ",
-    expanded = "- ",
+    directory = " + ",
+    file = "   ",
+    expanded = " - ",
   },
 }
 
