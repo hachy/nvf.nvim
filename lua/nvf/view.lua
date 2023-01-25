@@ -14,12 +14,16 @@ function M.get_list()
   return list
 end
 
-function M.get_fname(line)
+local function get_fname(line)
   return list[line - 1].name
 end
 
-local function get_absolute_path(line)
+function M.get_absolute_path(line)
   return list[line - 1].absolute_path
+end
+
+function M.is_expanded(line)
+  return list[line - 1].expanded
 end
 
 local function new_buffer(buf)
@@ -204,7 +208,7 @@ function M.expand_or_collapse()
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
-  buffer.mark_expand_or_collapse(buf, get_absolute_path(line))
+  buffer.mark_expand_or_collapse(buf, M.get_absolute_path(line))
   M.redraw(buf, cur_path)
   vim.api.nvim_win_set_cursor(0, cursor_pos)
 end
@@ -236,7 +240,7 @@ function M.open()
   end
   local buf = vim.api.nvim_get_current_buf()
   local cur_path = buffer.get_cwd(buf)
-  local next_path = get_absolute_path(line)
+  local next_path = M.get_absolute_path(line)
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
   if vim.fn.isdirectory(next_path) == 1 then
@@ -263,7 +267,7 @@ function M.toggle_hidden_files()
   if line == 1 then
     name = vim.api.nvim_get_current_line()
   else
-    name = M.get_fname(line)
+    name = get_fname(line)
   end
 
   local buf = vim.api.nvim_get_current_buf()

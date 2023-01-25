@@ -7,10 +7,23 @@ local sep = utils.sep
 local clipboard
 local paste_path
 
-local function full_path(input)
-  local buf = vim.api.nvim_get_current_buf()
-  local cur_path = buffer.get_cwd(buf)
-  return vim.fs.normalize(cur_path .. sep .. input)
+local function full_path(line, input)
+  if line == 1 then
+    local buf = vim.api.nvim_get_current_buf()
+    local cur_path = buffer.get_cwd(buf)
+    return vim.fs.normalize(cur_path .. sep .. input)
+  end
+  local cur_line_path = view.get_absolute_path(line)
+  local parent_path
+  local path
+  if view.is_expanded(line) then
+    parent_path = vim.fn.fnamemodify(cur_line_path, ":p")
+    path = parent_path .. input
+  else
+    parent_path = vim.fn.fnamemodify(cur_line_path, ":h")
+    path = parent_path .. sep .. input
+  end
+  return vim.fs.normalize(path)
 end
 
 local function msg_already_exists(path)
@@ -43,7 +56,7 @@ function M.create_file()
       return
     end
 
-    local path = full_path(input)
+    local path = full_path(vim.fn.line ".", input)
 
     if vim.loop.fs_stat(path) then
       msg_already_exists(path)
@@ -68,7 +81,7 @@ function M.create_directory()
       return
     end
 
-    local path = full_path(input)
+    local path = full_path(vim.fn.line ".", input)
 
     if vim.loop.fs_stat(path) then
       msg_already_exists(path)
@@ -85,8 +98,7 @@ function M.rename()
   if line == 1 then
     return
   end
-  local name = view.get_fname(line)
-  local path = utils.remove_trailing_slash(full_path(name))
+  local path = view.get_absolute_path(line)
   vim.ui.input({ prompt = "Rename to: ", default = path, completion = "file" }, function(new_path)
     if not new_path then
       return
@@ -115,8 +127,7 @@ function M.delete()
   if line == 1 then
     return
   end
-  local name = view.get_fname(line)
-  local path = full_path(name)
+  local path = view.get_absolute_path(line)
 
   if vim.fn.confirm("Delete?: " .. path, "&Yes\n&No", 1) ~= 1 then
     return
@@ -138,8 +149,11 @@ function M.delete()
 end
 
 function M.copy()
-  local name = view.get_fname(vim.fn.line ".")
-  local path = full_path(name)
+  local line = vim.fn.line "."
+  if line == 1 then
+    return
+  end
+  local path = view.get_absolute_path(line)
   clipboard = utils.remove_trailing_slash(path)
   vim.api.nvim_notify("Copied " .. clipboard, vim.log.levels.INFO, {})
 end
@@ -225,7 +239,7 @@ function M.paste()
     vim.api.nvim_notify("The clipboard is empty", vim.log.levels.INFO, {})
     return
   end
-  local path = full_path(vim.fs.basename(clipboard))
+  local path = full_path(vim.fn.line ".", vim.fs.basename(clipboard))
   paste_path = path
 
   if vim.fn.isdirectory(clipboard) == 1 then
