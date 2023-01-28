@@ -161,8 +161,8 @@ function M.redraw(buf, cur_path)
   local icons = config.default.icon
   local names = vim.tbl_map(function(t)
     local icon = icons[t.expanded and "expanded" or t.type]
-    local indent_and_icon = t.depth + vim.fn.strdisplaywidth(icon)
-    local align = winwidth() - indent_and_icon - vim.fn.strdisplaywidth(t.name)
+    local indent_and_icon = t.depth + vim.fn.strlen(icon)
+    local align = winwidth() - t.depth - vim.fn.strlen(t.name)
     local format = "%" .. indent_and_icon .. "s%s %" .. align .. "s"
     return string.format(format, icon, t.name, os.date("%x %H:%M", t.mtime))
   end, list)
