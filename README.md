@@ -41,6 +41,7 @@ vim.keymap.set("n", "<Space>f", "<Cmd>Nvf<CR>")
 - `q` : Quit the buffer
 - `l` : Open a file or directory under the cursor
 - `h` : Move to the parent directory
+- `t` : Expand or collapse tree
 - `^` : Move to current working directory
 - `~` : Move to home directory
 - `.` : Toggle visibility of hidden files
@@ -55,12 +56,13 @@ vim.keymap.set("n", "<Space>f", "<Cmd>Nvf<CR>")
 ## Custom configuration
 
 ```lua
-require('nvf').setup({
+require("nvf").setup {
   show_hidden_files = false,
   mappings = {
     ["q"] = "quit",
     ["l"] = "open",
     ["h"] = "up",
+    ["t"] = "expand_or_collapse",
     ["^"] = "cwd",
     ["~"] = "home",
     ["."] = "toggle_hidden_files",
@@ -72,7 +74,7 @@ require('nvf').setup({
     ["p"] = "paste",
     ["<Tab>"] = "brand_new_buffer",
   },
-})
+}
 ```
 
 ### Special Thanks

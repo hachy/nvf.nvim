@@ -1,0 +1,117 @@
+*nvf.txt*  A File explorer for Neovim
+
+===========================================================================
+CONTENTS                                                     *nvf-contents*
+
+Introduction                  |nvf-introduction|
+Setup                         |nvf-setup|
+Commands                      |nvf-commands|
+Mappings                      |nvf-mappings|
+HIGHLIGHTS                    |nvf-highlightS|
+Configuration                 |nvf-configuration|
+
+
+===========================================================================
+INTRODUCTION                                             *nvf-introduction*
+
+*nvf* is a simple file explorer for Neovim written in lua.
+
+===========================================================================
+SETUP                                                           *nvf-setup*
+
+Add this to your init.lua
+>lua
+  require("nvf").setup({})
+
+===========================================================================
+COMMANDS                                                     *nvf-commands*
+
+:Nvf
+
+  Open the default explorer.
+  If there is another explorer in the window, open it first.
+
+:NvfNew
+
+  Open another explorer that is not synchronized with the default.
+
+===========================================================================
+MAPPINGS                                                     *nvf-mappings*
+
+Default key mappings
+
+`q`       Quit the buffer
+`l`       Open a file or directory under the cursor
+`h`       Move to the parent directory
+`t`       Expand or collapse tree
+`^`       Move to current working directory
+`~`       Move to home directory
+`.`       Toggle visibility of hidden files
+`N`       Add a file
+`K`       Add a directory
+`R`       Rename
+`D`       Delete
+`c`       Copy
+`p`       Paste
+`<Tab>`   Open a brand new buffer
+
+===========================================================================
+HIGHLIGHTS                                                 *nvf-highlights*
+
+Default linked group
+
+NvfCWD       (Function)
+NvfIcon      (Constant)
+NvfDir       (Preproc)
+NvfFile      (Normal)
+NvfLink      (Number)
+NvfTime      (Type)
+
+You can set highlight like this.
+>lua
+  vim.api.nvim_set_hl(0, "NvfCWD", { link = "Number" })
+
+<
+===========================================================================
+CONFIGURATION                                           *nvf-configuration*
+
+Default configuration
+>lua
+  require("nvf").setup {
+    show_hidden_files = false,
+    mappings = {
+      ["q"] = "quit",
+      ["l"] = "open",
+      ["h"] = "up",
+      ["t"] = "expand_or_collapse",
+      ["^"] = "cwd",
+      ["~"] = "home",
+      ["."] = "toggle_hidden_files",
+      ["N"] = "create_file",
+      ["K"] = "create_directory",
+      ["R"] = "rename",
+      ["D"] = "delete",
+      ["c"] = "copy",
+      ["p"] = "paste",
+      ["<Tab>"] = "brand_new_buffer",
+    },
+    indent = 1,
+    icon = {
+      directory = " + ",
+      file = "   ",
+      expanded = " - ",
+    },
+  }
+<
+Example for custom configuration
+>lua
+  require("nvf").setup {
+    icon = {
+      directory = " ▸ ",
+      file = "   ",
+      expanded = " ▾ ",
+    },
+  }
+<
+===========================================================================
+vim:tw=80:ts=8:noet:ft=help:norl:
