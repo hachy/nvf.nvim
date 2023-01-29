@@ -186,7 +186,7 @@ function M.redraw(buf, cur_path)
   end, list)
 
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { path })
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { vim.fn.fnamemodify(path, ":~") })
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
   local extra_space = 4
   highlight.render(list, icons, winwidth() - mtime_len + extra_space)
