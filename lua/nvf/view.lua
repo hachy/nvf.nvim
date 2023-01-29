@@ -63,18 +63,31 @@ local function winwidth()
   local width = vim.api.nvim_get_option "columns"
   if width >= 99 then
     width = 80
-  elseif width <= 40 then
-    width = 40
+  elseif width <= 60 then
+    width = 60
   else
     width = width - 10
   end
   return width
 end
 
+local function convert_bytes(bytes)
+  local sizes = { "B", "K", "M", "G", "T", "P" }
+  if bytes == 0 then
+    return 0
+  end
+  local i = math.floor(math.log(bytes) / math.log(1024))
+  if i == 0 then
+    return bytes .. " " .. sizes[i + 1]
+  end
+  return string.format("%.1f %s", bytes / math.pow(1024, i), sizes[i + 1])
+end
+
 local function line_item(path, name, type, depth, buf)
   local absolute_path = path .. name
   local fs_lstat = vim.loop.fs_lstat(absolute_path)
   local link = nil
+  local size = nil
   local expanded = false
   if type == "directory" then
     name = name .. sep
@@ -84,8 +97,11 @@ local function line_item(path, name, type, depth, buf)
       type = "directory"
     else
       type = "file"
+      size = convert_bytes(fs_lstat.size)
     end
     link = type
+  else
+    size = convert_bytes(fs_lstat.size)
   end
   if type == "directory" and buffer.exists_expanded_folders(buf, absolute_path) then
     expanded = true
@@ -94,6 +110,7 @@ local function line_item(path, name, type, depth, buf)
     name = name,
     type = type,
     link = link,
+    size = size,
     mtime = fs_lstat.mtime.sec,
     expanded = expanded,
     absolute_path = absolute_path,
@@ -159,18 +176,20 @@ function M.redraw(buf, cur_path)
   list = utils.shallowcopy(create_list(fs, path, 0, buf))
 
   local icons = config.default.icon
+  local mtime_len = 16
   local names = vim.tbl_map(function(t)
     local icon = icons[t.expanded and "expanded" or t.type]
     local indent_and_icon = t.depth + vim.fn.strlen(icon)
-    local align = winwidth() - t.depth - vim.fn.strlen(t.name)
-    local format = "%" .. indent_and_icon .. "s%s %" .. align .. "s"
-    return string.format(format, icon, t.name, os.date("%x %H:%M", t.mtime))
+    local align = winwidth() - t.depth - vim.fn.strlen(t.name) - mtime_len
+    local format = "%" .. indent_and_icon .. "s%s %" .. align .. "s %s"
+    return string.format(format, icon, t.name, t.size or "", os.date("%x %H:%M", t.mtime))
   end, list)
 
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { path })
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
-  highlight.render(list, icons, winwidth() - 16)
+  local extra_space = 4
+  highlight.render(list, icons, winwidth() - mtime_len + extra_space)
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
 

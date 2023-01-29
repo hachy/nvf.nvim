@@ -65,6 +65,7 @@ NvfIcon      (Constant)
 NvfDir       (Preproc)
 NvfFile      (Normal)
 NvfLink      (Number)
+NvfSize      (Statement)
 NvfTime      (Type)
 
 You can set highlight like this.
