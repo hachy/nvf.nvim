@@ -2,6 +2,8 @@
 
 Minimal file explorer for Neovim.
 
+<img width="702" alt="nvf" src="https://user-images.githubusercontent.com/1613863/215327603-703c1766-bf39-4706-a0d6-24ef1a9afd25.png">
+
 ## Installation
 
 Using [vim-plug](https://github.com/junegunn/vim-plug)
