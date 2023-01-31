@@ -141,7 +141,7 @@ local function create_list(fs, path, depth, buf)
       local path2 = vim.fn.fnamemodify(v.absolute_path, ":p")
       local fs2, err2 = vim.loop.fs_scandir(path2)
       if not fs2 then
-        vim.api.nvim_notify(err2, vim.log.levels.ERROR, {})
+        vim.api.nvim_notify(err2, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
         return
       end
       table.insert(list2, { i, create_list(fs2, path2, depth + config.default.indent, buf) })
@@ -164,7 +164,7 @@ function M.redraw(buf, cur_path)
   local path = vim.fn.fnamemodify(cur_path, ":p")
   local fs, err = vim.loop.fs_scandir(path)
   if not fs then
-    vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
+    vim.api.nvim_notify(err, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
     return
   end
 

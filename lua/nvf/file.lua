@@ -178,7 +178,7 @@ local function copy_recursively(from_path, to_path)
 
   local fs, err = vim.loop.fs_scandir(from)
   if not fs then
-    vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
+    vim.api.nvim_notify(err, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
     return
   end
 
@@ -197,7 +197,7 @@ local function copy_recursively(from_path, to_path)
     else
       local ok_cp, err_cp = vim.loop.fs_copyfile(old_path, new_path)
       if not ok_cp then
-        vim.api.nvim_notify(err_cp, vim.log.levels.ERROR, {})
+        vim.api.nvim_notify(err_cp, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
         return
       end
     end
@@ -221,7 +221,7 @@ local function paste_file(path)
 
   local ok, err = vim.loop.fs_copyfile(clipboard, path)
   if not ok then
-    vim.api.nvim_notify(err, vim.log.levels.ERROR, {})
+    vim.api.nvim_notify(err, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
     return
   end
 end
