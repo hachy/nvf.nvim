@@ -142,10 +142,11 @@ local function create_list(fs, path, depth, buf)
       local fs2, err2 = vim.loop.fs_scandir(path2)
       if not fs2 then
         vim.api.nvim_notify(err2, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
-        return
+        goto continue
       end
       table.insert(list2, { i, create_list(fs2, path2, depth + config.default.indent, buf) })
     end
+    ::continue::
   end
 
   local cnt = 1
