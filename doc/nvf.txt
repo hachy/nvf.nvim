@@ -61,7 +61,7 @@ HIGHLIGHTS                                                 *nvf-highlights*
 Default linked group
 
 NvfCWD       (Function)
-NvfIcon      (Constant)
+NvfSign      (Constant)
 NvfDir       (Preproc)
 NvfFile      (Normal)
 NvfLink      (Number)
@@ -97,7 +97,7 @@ Default configuration
       ["<Tab>"] = "brand_new_buffer",
     },
     indent = 1,
-    icon = {
+    signs = {
       directory = " + ",
       file = "   ",
       expanded = " - ",
@@ -107,7 +107,7 @@ Default configuration
 Example for custom configuration
 >lua
   require("nvf").setup {
-    icon = {
+    signs = {
       directory = " ▸ ",
       file = "   ",
       expanded = " ▾ ",

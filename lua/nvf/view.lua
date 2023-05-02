@@ -176,21 +176,21 @@ function M.redraw(buf, cur_path)
 
   list = utils.shallowcopy(create_list(fs, path, 0, buf))
 
-  local icons = config.default.icon
+  local signs = config.default.signs
   local mtime_len = 16
   local names = vim.tbl_map(function(t)
-    local icon = icons[t.expanded and "expanded" or t.type]
-    local indent_and_icon = t.depth + vim.fn.strlen(icon)
+    local sign = signs[t.expanded and "expanded" or t.type]
+    local indent_and_sign = t.depth + vim.fn.strlen(sign)
     local align = winwidth() - t.depth - vim.fn.strlen(t.name) - mtime_len
-    local format = "%" .. indent_and_icon .. "s%s %" .. align .. "s %s"
-    return string.format(format, icon, t.name, t.size or "", os.date("%x %H:%M", t.mtime))
+    local format = "%" .. indent_and_sign .. "s%s %" .. align .. "s %s"
+    return string.format(format, sign, t.name, t.size or "", os.date("%x %H:%M", t.mtime))
   end, list)
 
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { vim.fn.fnamemodify(path, ":~") })
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
   local extra_space = 4
-  highlight.render(list, icons, winwidth() - mtime_len + extra_space)
+  highlight.render(list, signs, winwidth() - mtime_len + extra_space)
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
 

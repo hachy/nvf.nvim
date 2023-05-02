@@ -19,7 +19,7 @@ M.default = {
     ["<Tab>"] = "brand_new_buffer",
   },
   indent = 1,
-  icon = {
+  signs = {
     directory = " + ",
     file = "   ",
     expanded = " - ",
