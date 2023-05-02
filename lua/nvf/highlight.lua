@@ -1,3 +1,5 @@
+local utils = require "nvf.utils"
+
 local M = {}
 
 local ns = vim.api.nvim_create_namespace "NvfHighlight"
@@ -12,12 +14,12 @@ function M.setup()
   vim.api.nvim_set_hl(0, "NvfTime", { default = true, link = "Type" })
 end
 
-function M.render(fs_stat, signs, mtime_start)
+function M.render(fs_stat, mtime_start)
   vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
   vim.api.nvim_buf_add_highlight(0, ns, "NvfCWD", 0, 0, -1)
 
   for i, v in ipairs(fs_stat) do
-    local name_start = v.depth + vim.fn.strlen(signs[v.expanded and "expanded" or v.type])
+    local name_start = v.depth + vim.fn.strlen(utils.plus_minus_sign(v))
     local name_end = name_start + vim.fn.strlen(v.name)
     vim.api.nvim_buf_add_highlight(0, ns, "NvfSign", i, 0, name_start)
     if v.type == "directory" then

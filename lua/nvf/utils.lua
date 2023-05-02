@@ -1,3 +1,5 @@
+local config = require "nvf.config"
+
 local M = {}
 
 local sep = package.config:sub(1, 1)
@@ -24,6 +26,10 @@ function M.shallowcopy(orig)
     copy = orig
   end
   return copy
+end
+
+function M.plus_minus_sign(item)
+  return config.default.signs[item.expanded and "expanded" or item.type]
 end
 
 return M
