@@ -165,7 +165,7 @@ function M.redraw(buf, cur_path)
   local fs, err = vim.loop.fs_scandir(path)
   if not fs then
     vim.api.nvim_notify(err, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
-    return
+    return true
   end
 
   -- reset list
@@ -264,7 +264,11 @@ function M.open()
 
   if vim.fn.isdirectory(next_path) == 1 then
     buffer.set_cwd(buf, next_path)
-    M.redraw(buf, next_path)
+    local err = M.redraw(buf, next_path)
+    if err then
+      buffer.set_cwd(buf, cur_path)
+      return
+    end
   else
     vim.cmd "redraw"
     vim.cmd("edit " .. next_path)
