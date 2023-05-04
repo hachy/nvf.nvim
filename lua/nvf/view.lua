@@ -83,7 +83,11 @@ end
 
 local function line_item(path, name, type, depth, buf)
   local absolute_path = path .. name
-  local fs_lstat = vim.loop.fs_lstat(absolute_path)
+  local fs_lstat, err = vim.loop.fs_lstat(absolute_path)
+  if not fs_lstat then
+    vim.api.nvim_notify(err, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
+    return
+  end
   local link = nil
   local size = nil
   local expanded = false
