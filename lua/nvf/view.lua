@@ -61,12 +61,10 @@ end
 
 local function winwidth()
   local width = vim.api.nvim_get_option "columns"
-  if width >= 99 then
+  if width >= 80 then
     width = 80
   elseif width <= 60 then
     width = 60
-  else
-    width = width - 10
   end
   return width
 end
@@ -176,20 +174,31 @@ function M.redraw(buf, cur_path)
 
   list = utils.shallowcopy(create_list(fs, path, 0, buf))
 
-  local mtime_len = 16
+  local MTIME_LEN = 16
+  local MAX_FILE_SIZE_LEN = 6
   local names = vim.tbl_map(function(t)
     local sign = utils.plus_minus_sign(t)
     local indent_and_sign = t.depth + vim.fn.strlen(sign)
-    local align = winwidth() - t.depth - vim.fn.strlen(t.name) - mtime_len
+    local without_name = winwidth() - t.depth - MTIME_LEN
+    local name_len = vim.fn.strlen(t.name)
+    local align = without_name - name_len
+    local file_name = t.name
+    local surplus = align - MAX_FILE_SIZE_LEN
+    if surplus < 0 then
+      local ellipsis = "..."
+      local overflow = (name_len + surplus) / 2 - ellipsis:len()
+      file_name = t.name:sub(0, overflow) .. ellipsis .. t.name:sub(name_len - overflow, name_len)
+      align = without_name - vim.fn.strlen(file_name)
+    end
     local format = "%" .. indent_and_sign .. "s%s %" .. align .. "s %s"
-    return string.format(format, sign, t.name, t.size or "", os.date("%x %H:%M", t.mtime))
+    return string.format(format, sign, file_name, t.size or "", os.date("%x %H:%M", t.mtime))
   end, list)
 
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { vim.fn.fnamemodify(path, ":~") })
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
-  local extra_space = 4
-  highlight.render(list, winwidth() - mtime_len + extra_space)
+  local EXTRA_SPACE = 4
+  highlight.render(list, winwidth() - MTIME_LEN + EXTRA_SPACE)
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
 
