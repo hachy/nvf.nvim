@@ -3,38 +3,35 @@ local buffer = require "nvf.buffer"
 local window = require "nvf.window"
 local cursor = require "nvf.cursor"
 local view = require "nvf.view"
+local file = require "nvf.file"
 
 local M = {}
 
 local default_buf, nvf_group
 
 local cmd = {
-  quit = "require('nvf.view').quit()",
-  open = "require('nvf.view').open()",
-  up = "require('nvf.view').up()",
-  expand_or_collapse = "require('nvf.view').expand_or_collapse()",
-  cwd = "require('nvf.view').cwd()",
-  home = "require('nvf.view').home()",
-  toggle_hidden_files = "require('nvf.view').toggle_hidden_files()",
-  create_file = "require('nvf.file').create_file()",
-  create_directory = "require('nvf.file').create_directory()",
-  rename = "require('nvf.file').rename()",
-  delete = "require('nvf.file').delete()",
-  copy = "require('nvf.file').copy()",
-  paste = "require('nvf.file').paste()",
-  brand_new_buffer = "require('nvf').brand_new_buffer()",
+  quit = view.quit,
+  open = view.open,
+  up = view.up,
+  expand_or_collapse = view.expand_or_collapse,
+  cwd = view.cwd,
+  home = view.home,
+  toggle_hidden_files = view.toggle_hidden_files,
+  create_file = file.create_file,
+  create_directory = file.create_directory,
+  rename = file.rename,
+  delete = file.delete,
+  copy = file.copy,
+  paste = file.paste,
+  brand_new_buffer = "<Cmd>NvfNew<CR>",
 }
 
 local function set_mappings(mappings)
   for k, v in pairs(mappings) do
-    if cmd[v] then
-      v = cmd[v]
+    if cmd[k] then
+      k = cmd[k]
     end
-    vim.api.nvim_buf_set_keymap(0, "n", k, "<cmd>lua " .. v .. "<cr>", {
-      nowait = true,
-      noremap = true,
-      silent = true,
-    })
+    vim.keymap.set("n", v, k, { buffer = true })
   end
 end
 
