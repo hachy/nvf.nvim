@@ -27,10 +27,10 @@ function M.is_expanded(line)
 end
 
 local function new_buffer(buf)
-  vim.api.nvim_buf_set_option(buf, "filetype", "nvf")
-  vim.api.nvim_buf_set_option(buf, "bufhidden", "hide")
-  vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
-  vim.api.nvim_buf_set_option(buf, "swapfile", false)
+  vim.api.nvim_set_option_value("filetype", "nvf", { buf = buf })
+  vim.api.nvim_set_option_value("bufhidden", "hide", { buf = buf })
+  vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
+  vim.api.nvim_set_option_value("swapfile", false, { buf = buf })
 
   vim.cmd("buffer " .. buf)
   vim.opt_local.wrap = false
@@ -60,7 +60,7 @@ local function sort(a, b)
 end
 
 local function winwidth()
-  local width = vim.api.nvim_get_option "columns"
+  local width = vim.api.nvim_get_option_value("columns", {})
   if width >= 80 then
     width = 80
   elseif width <= 60 then
@@ -198,12 +198,12 @@ function M.redraw(buf, cur_path)
     return string.format(format, sign, file_name, t.size or "", os.date("%x %H:%M", t.mtime))
   end, list)
 
-  vim.api.nvim_buf_set_option(buf, "modifiable", true)
+  vim.api.nvim_set_option_value("modifiable", true, { buf = buf })
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { vim.fn.fnamemodify(path, ":~") })
   vim.api.nvim_buf_set_lines(buf, 1, -1, false, names)
   local EXTRA_SPACE = 4
   highlight.render(list, winwidth() - MTIME_LEN + EXTRA_SPACE)
-  vim.api.nvim_buf_set_option(buf, "modifiable", false)
+  vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
 end
 
 local function find_cursor_line_from(file_list, name)
