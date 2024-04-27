@@ -11,6 +11,22 @@ Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```vim
 Plug 'hachy/nvf.nvim'
 ```
+Using [lazy.nvim](https://github.com/folke/lazy.nvim)
+
+```lua
+return {
+  'hachy/nvf.nvim',
+  dependencies = {
+    -- with or without icons
+    { 'nvim-tree/nvim-web-devicons', enabled = false },
+  },
+  config = function()
+    require('nvf').setup()
+
+    vim.keymap.set('n', '<Space>e', '<Cmd>Nvf<CR>')
+  end,
+}
+```
 
 ## Setup
 
