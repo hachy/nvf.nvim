@@ -16,25 +16,25 @@ end
 
 function M.render(fs_stat, mtime_start)
   vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
-  vim.api.nvim_buf_add_highlight(0, ns, "NvfCWD", 0, 0, -1)
+  vim.hl.range(0, ns, "NvfCWD", { 0, 0 }, { 0, -1 }, {})
 
   for i, v in ipairs(fs_stat) do
     local name_start = v.depth + vim.fn.strlen(utils.plus_minus_sign(v))
     local name_end = name_start + vim.fn.strlen(v.name)
-    vim.api.nvim_buf_add_highlight(0, ns, "NvfSign", i, 0, name_start)
+    vim.hl.range(0, ns, "NvfSign", { i, 0 }, { i, name_start }, {})
     if v.type == "directory" then
-      vim.api.nvim_buf_add_highlight(0, ns, "NvfDir", i, name_start, name_end)
+      vim.hl.range(0, ns, "NvfDir", { i, name_start }, { i, name_end }, {})
     else
-      vim.api.nvim_buf_add_highlight(0, ns, "NvfFile", i, name_start, name_end)
+      vim.hl.range(0, ns, "NvfFile", { i, name_start }, { i, name_end }, {})
     end
     if v.link then
-      vim.api.nvim_buf_add_highlight(0, ns, "NvfLink", i, name_start, name_end)
+      vim.hl.range(0, ns, "NvfLink", { i, name_start }, { i, name_end }, {})
     end
     if v.size then
       local size_end = mtime_start - vim.fn.strlen(v.size)
-      vim.api.nvim_buf_add_highlight(0, ns, "NvfSize", i, size_end, mtime_start)
+      vim.hl.range(0, ns, "NvfSize", { i, size_end }, { i, mtime_start }, {})
     end
-    vim.api.nvim_buf_add_highlight(0, ns, "NvfTime", i, mtime_start, -1)
+    vim.hl.range(0, ns, "NvfTime", { i, mtime_start }, { i, -1 }, {})
   end
 end
 

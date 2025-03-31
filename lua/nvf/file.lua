@@ -28,7 +28,7 @@ end
 
 local function msg_already_exists(path)
   vim.cmd "redraw"
-  vim.api.nvim_notify(string.format("%s already exists", path), vim.log.levels.WARN, {})
+  vim.api.nvim_echo({ { string.format("%s already exists", path), "WarningMsg" } }, true, {})
 end
 
 local function cursor_after_action(input)
@@ -66,7 +66,7 @@ function M.create_file()
     local fd, err = vim.loop.fs_open(path, "w", 420)
     if not fd then
       vim.cmd "redraw"
-      vim.api.nvim_notify(err .. path, vim.log.levels.ERROR, {})
+      vim.api.nvim_echo({ { err .. path, "ErrorMsg" } }, true, {})
       return
     end
     vim.loop.fs_close(fd)
@@ -114,7 +114,7 @@ function M.rename()
     local ok, err = vim.loop.fs_rename(path, new_path)
     if not ok then
       vim.cmd "redraw"
-      vim.api.nvim_notify(err .. path, vim.log.levels.ERROR, {})
+      vim.api.nvim_echo({ { err .. path, "ErrorMsg" } }, true, {})
       return
     end
 
@@ -135,7 +135,7 @@ function M.delete()
 
   if vim.fn.delete(path, "rf") ~= 0 then
     vim.cmd "redraw"
-    vim.api.nvim_notify("Couldn't delete " .. path, vim.log.levels.ERROR, {})
+    vim.api.nvim_echo({ { "Couldn't delete " .. path, "ErrorMsg" } }, true, {})
   end
 
   local bl = vim.fn.getbufinfo { buflisted = 1 }
@@ -155,7 +155,7 @@ function M.copy()
   end
   local path = view.get_absolute_path(line)
   clipboard = utils.remove_trailing_slash(path)
-  vim.api.nvim_notify("Copied " .. clipboard, vim.log.levels.INFO, {})
+  vim.api.nvim_echo({ { "Copied " .. clipboard, "DiagnosticInfo" } }, true, {})
 end
 
 local function copy_recursively(from_path, to_path)
@@ -178,13 +178,13 @@ local function copy_recursively(from_path, to_path)
 
   local fs, err = vim.loop.fs_scandir(from)
   if not fs then
-    vim.api.nvim_notify(err, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
+    vim.api.nvim_echo({ { err, "ErrorMsg" } }, true, {})
     return
   end
 
   local ok, err_mkdir = vim.loop.fs_mkdir(to, stat.mode)
   if not ok then
-    vim.api.nvim_notify(err_mkdir .. to, vim.log.levels.ERROR, {})
+    vim.api.nvim_echo({ { err_mkdir .. to, "ErrorMsg" } }, true, {})
     return
   end
 
@@ -197,7 +197,7 @@ local function copy_recursively(from_path, to_path)
     else
       local ok_cp, err_cp = vim.loop.fs_copyfile(old_path, new_path)
       if not ok_cp then
-        vim.api.nvim_notify(err_cp, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
+        vim.api.nvim_echo({ { err_cp, "ErrorMsg" } }, true, {})
         return
       end
     end
@@ -221,7 +221,7 @@ local function paste_file(path)
 
   local ok, err = vim.loop.fs_copyfile(clipboard, path)
   if not ok then
-    vim.api.nvim_notify(err, vim.log.levels.ERROR, {}) ---@diagnostic disable-line: param-type-mismatch
+    vim.api.nvim_echo({ { err, "ErrorMsg" } }, true, {})
     return
   end
 end
@@ -236,7 +236,7 @@ end
 
 function M.paste()
   if clipboard == nil then
-    vim.api.nvim_notify("The clipboard is empty", vim.log.levels.INFO, {})
+    vim.api.nvim_echo({ { "The clipboard is empty", "DiagnosticInfo" } }, true, {})
     return
   end
   local path = full_path(vim.fn.line ".", vim.fs.basename(clipboard))
