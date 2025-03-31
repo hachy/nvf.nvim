@@ -83,7 +83,7 @@ end
 
 local function line_item(path, name, type, depth, buf)
   local absolute_path = path .. name
-  local fs_lstat, err = vim.loop.fs_lstat(absolute_path)
+  local fs_lstat, err = vim.uv.fs_lstat(absolute_path)
   if not fs_lstat then
     vim.api.nvim_echo({ { err, "ErrorMsg" } }, true, {})
     return
@@ -122,7 +122,7 @@ end
 
 local function create_list(fs, path, depth, buf)
   local local_list = {}
-  local name, type = vim.loop.fs_scandir_next(fs)
+  local name, type = vim.uv.fs_scandir_next(fs)
   while name ~= nil do
     local item = line_item(path, name, type, depth, buf)
     if not config.default.show_hidden_files then
@@ -132,7 +132,7 @@ local function create_list(fs, path, depth, buf)
     else
       table.insert(local_list, item)
     end
-    name, type = vim.loop.fs_scandir_next(fs)
+    name, type = vim.uv.fs_scandir_next(fs)
   end
 
   table.sort(local_list, sort)
@@ -141,7 +141,7 @@ local function create_list(fs, path, depth, buf)
   for i, v in ipairs(local_list) do
     if v.expanded then
       local path2 = vim.fn.fnamemodify(v.absolute_path, ":p")
-      local fs2, err2 = vim.loop.fs_scandir(path2)
+      local fs2, err2 = vim.uv.fs_scandir(path2)
       if not fs2 then
         vim.api.nvim_echo({ { err2, "ErrorMsg" } }, true, {})
         goto continue
@@ -165,7 +165,7 @@ end
 
 function M.redraw(buf, cur_path)
   local path = vim.fn.fnamemodify(cur_path, ":p")
-  local fs, err = vim.loop.fs_scandir(path)
+  local fs, err = vim.uv.fs_scandir(path)
   if not fs then
     vim.api.nvim_echo({ { err, "ErrorMsg" } }, true, {})
     return true
@@ -258,11 +258,11 @@ local function cd_to(dest)
 end
 
 function M.cwd()
-  cd_to(vim.loop.cwd())
+  cd_to(vim.uv.cwd())
 end
 
 function M.home()
-  cd_to(vim.loop.os_homedir())
+  cd_to(vim.uv.os_homedir())
 end
 
 function M.open()

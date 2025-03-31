@@ -58,18 +58,18 @@ function M.create_file()
 
     local path = full_path(vim.fn.line ".", input)
 
-    if vim.loop.fs_stat(path) then
+    if vim.uv.fs_stat(path) then
       msg_already_exists(path)
       return
     end
 
-    local fd, err = vim.loop.fs_open(path, "w", 420)
+    local fd, err = vim.uv.fs_open(path, "w", 420)
     if not fd then
       vim.cmd "redraw"
       vim.api.nvim_echo({ { err .. path, "ErrorMsg" } }, true, {})
       return
     end
-    vim.loop.fs_close(fd)
+    vim.uv.fs_close(fd)
 
     redraw(input)
   end)
@@ -83,7 +83,7 @@ function M.create_directory()
 
     local path = full_path(vim.fn.line ".", input)
 
-    if vim.loop.fs_stat(path) then
+    if vim.uv.fs_stat(path) then
       msg_already_exists(path)
       return
     end
@@ -106,12 +106,12 @@ function M.rename()
 
     new_path = utils.remove_trailing_slash(new_path)
 
-    if vim.loop.fs_stat(new_path) then
+    if vim.uv.fs_stat(new_path) then
       msg_already_exists(new_path)
       return
     end
 
-    local ok, err = vim.loop.fs_rename(path, new_path)
+    local ok, err = vim.uv.fs_rename(path, new_path)
     if not ok then
       vim.cmd "redraw"
       vim.api.nvim_echo({ { err .. path, "ErrorMsg" } }, true, {})
@@ -161,9 +161,9 @@ end
 local function copy_recursively(from_path, to_path)
   local from = utils.remove_trailing_slash(from_path)
   local to = utils.remove_trailing_slash(to_path)
-  local stat = assert(vim.loop.fs_stat(from))
+  local stat = assert(vim.uv.fs_stat(from))
 
-  if vim.loop.fs_stat(to) then
+  if vim.uv.fs_stat(to) then
     msg_already_exists(to)
     if vim.fn.confirm("Rename?", "&Yes\n&Cancel") == 1 then
       vim.ui.input({ prompt = "Rename to: ", default = to, completion = "file" }, function(renamed_path)
@@ -176,37 +176,37 @@ local function copy_recursively(from_path, to_path)
     end
   end
 
-  local fs, err = vim.loop.fs_scandir(from)
+  local fs, err = vim.uv.fs_scandir(from)
   if not fs then
     vim.api.nvim_echo({ { err, "ErrorMsg" } }, true, {})
     return
   end
 
-  local ok, err_mkdir = vim.loop.fs_mkdir(to, stat.mode)
+  local ok, err_mkdir = vim.uv.fs_mkdir(to, stat.mode)
   if not ok then
     vim.api.nvim_echo({ { err_mkdir .. to, "ErrorMsg" } }, true, {})
     return
   end
 
-  local name, type = vim.loop.fs_scandir_next(fs)
+  local name, type = vim.uv.fs_scandir_next(fs)
   while name ~= nil do
     local old_path = vim.fs.normalize(from .. sep .. name)
     local new_path = vim.fs.normalize(to .. sep .. name)
     if type == "directory" then
       copy_recursively(old_path, new_path)
     else
-      local ok_cp, err_cp = vim.loop.fs_copyfile(old_path, new_path)
+      local ok_cp, err_cp = vim.uv.fs_copyfile(old_path, new_path)
       if not ok_cp then
         vim.api.nvim_echo({ { err_cp, "ErrorMsg" } }, true, {})
         return
       end
     end
-    name, type = vim.loop.fs_scandir_next(fs)
+    name, type = vim.uv.fs_scandir_next(fs)
   end
 end
 
 local function paste_file(path)
-  if vim.loop.fs_stat(path) then
+  if vim.uv.fs_stat(path) then
     msg_already_exists(path)
     if vim.fn.confirm("Rename?", "&Yes\n&Cancel") == 1 then
       vim.ui.input({ prompt = "Rename to: ", default = path, completion = "file" }, function(renamed_path)
@@ -219,7 +219,7 @@ local function paste_file(path)
     end
   end
 
-  local ok, err = vim.loop.fs_copyfile(clipboard, path)
+  local ok, err = vim.uv.fs_copyfile(clipboard, path)
   if not ok then
     vim.api.nvim_echo({ { err, "ErrorMsg" } }, true, {})
     return
