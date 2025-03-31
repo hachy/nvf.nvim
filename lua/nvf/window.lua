@@ -1,12 +1,12 @@
-local Window = {}
+local M = {}
 
 local list = {}
 
-function Window.new(win, buf, prev_buf)
+function M.new(win, buf, prev_buf)
   list[win] = { buf = buf, prev_buf = prev_buf }
 end
 
-function Window.get_prev_buf(win)
+function M.get_prev_buf(win)
   local pb = list[win].prev_buf
   if vim.fn.bufexists(pb) == 0 then
     local bl = vim.fn.getbufinfo { buflisted = 1 }
@@ -17,7 +17,7 @@ function Window.get_prev_buf(win)
   return pb
 end
 
-function Window.find_buf_in(win)
+function M.find_buf_in(win)
   if list[win] == nil then
     return nil
   else
@@ -25,8 +25,8 @@ function Window.find_buf_in(win)
   end
 end
 
-function Window.clear(win)
+function M.clear(win)
   list[win] = nil
 end
 
-return Window
+return M

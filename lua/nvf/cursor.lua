@@ -1,8 +1,8 @@
-local Cursor = {}
+local M = {}
 
 local list = {}
 
-function Cursor.new(buf, dir, pos)
+function M.new(buf, dir, pos)
   local obj = { buf = buf, dir = dir, pos = pos }
   for i, t in pairs(list) do
     if t.buf == buf and t.dir == dir then
@@ -10,10 +10,10 @@ function Cursor.new(buf, dir, pos)
     end
   end
   table.insert(list, obj)
-  return setmetatable(obj, { __index = Cursor })
+  return setmetatable(obj, { __index = M })
 end
 
-function Cursor.get(buf, dir)
+function M.get(buf, dir)
   for _, t in pairs(list) do
     if t.buf == buf and t.dir == dir then
       return t.pos
@@ -21,7 +21,7 @@ function Cursor.get(buf, dir)
   end
 end
 
-function Cursor.set(buf, dir, default_pos)
+function M.set(buf, dir, default_pos)
   local pos = default_pos
   for _, t in pairs(list) do
     if t.buf == buf and t.dir == dir then
@@ -41,7 +41,7 @@ function Cursor.set(buf, dir, default_pos)
   end
 end
 
-function Cursor.clear(buf)
+function M.clear(buf)
   for i, v in ipairs(list) do
     if v.buf == buf then
       list[i] = nil
@@ -49,4 +49,4 @@ function Cursor.clear(buf)
   end
 end
 
-return Cursor
+return M

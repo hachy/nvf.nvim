@@ -1,27 +1,27 @@
-local Buffer = {}
+local M = {}
 
 local list = {}
 
-function Buffer.new(buf, cwd, expanded_folders)
+function M.new(buf, cwd, expanded_folders)
   list[buf] = { buf = buf, cwd = cwd, expanded_folders = expanded_folders }
 end
 
-function Buffer.set_cwd(buf, cwd)
+function M.set_cwd(buf, cwd)
   list[buf].cwd = cwd
 end
 
-function Buffer.get_cwd(buf)
+function M.get_cwd(buf)
   return list[buf].cwd
 end
 
-function Buffer.get_expanded_folders(buf)
+function M.get_expanded_folders(buf)
   if list[buf] ~= nil then
     return list[buf].expanded_folders
   end
   return nil
 end
 
-function Buffer.mark_expand_or_collapse(buf, absolute_path)
+function M.mark_expand_or_collapse(buf, absolute_path)
   local t = list[buf].expanded_folders
   for i, v in ipairs(t) do
     if v == absolute_path then
@@ -32,7 +32,7 @@ function Buffer.mark_expand_or_collapse(buf, absolute_path)
   table.insert(t, absolute_path)
 end
 
-function Buffer.exists_expanded_folders(buf, absolute_path)
+function M.exists_expanded_folders(buf, absolute_path)
   local t = list[buf].expanded_folders
   if t == nil then
     return false
@@ -45,8 +45,8 @@ function Buffer.exists_expanded_folders(buf, absolute_path)
   return false
 end
 
-function Buffer.clear(buf)
+function M.clear(buf)
   list[buf] = nil
 end
 
-return Buffer
+return M
